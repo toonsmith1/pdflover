@@ -1,7 +1,7 @@
 import json
 from io import BytesIO
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
 
 import pypdfium2 as pdfium
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
@@ -103,11 +103,18 @@ async def organize(file: Annotated[UploadFile, File(...)], order: Annotated[str,
 
 
 @app.post("/api/pdf-info")
-async def pdf_info(file: Annotated[UploadFile, File(...)]) -> dict[str, int]:
+async def pdf_info(file: Annotated[UploadFile, File(...)]) -> dict[str, Any]:
     data = await file.read()
     check_file(file, data)
     try:
-        return {"pages": len(PdfReader(BytesIO(data)).pages)}
+        reader = PdfReader(BytesIO(data))
+        page = reader.pages[0]
+        box = page.mediabox
+        return {
+            "pages": len(reader.pages),
+            "width": round(float(box.width), 2),
+            "height": round(float(box.height), 2),
+        }
     except Exception as exc:
         raise HTTPException(400, f"Could not read PDF: {exc}") from exc
 
