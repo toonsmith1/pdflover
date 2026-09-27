@@ -9,15 +9,7 @@ if (name === 'crop') $('#crop-field').hidden = false;
 else $('#crop-field').remove();
 if (name === 'text') {
   $('#text-field').hidden = false;
-  const pad = $('#text-position-pad'), dot = $('#text-position-dot'); pad.hidden = false;
-  const textOverlay = $('#text-overlay');
-  const updateTextOverlay = () => { textOverlay.textContent = $('#text-value').value || 'ข้อความตัวอย่าง'; textOverlay.style.color = $('#text-color').value; textOverlay.style.fontSize = `${Math.max(8, Number($('#text-size').value) || 16)}px`; textOverlay.style.fontFamily = $('#text-font').selectedOptions[0].text; };
-  ['text-value','text-color','text-size','text-font'].forEach(id => $('#'+id).addEventListener('input', updateTextOverlay));
-  $('#text-font').addEventListener('change', updateTextOverlay); updateTextOverlay();
-  let moving = false;
-  dot.addEventListener('pointerdown', event => { moving = true; dot.setPointerCapture(event.pointerId); });
-  dot.addEventListener('pointerup', () => { moving = false; });
-  dot.addEventListener('pointermove', event => { if (!moving) return; const image = $('#text-page-image'), rect = image.getBoundingClientRect(); const px = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)); const py = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height)); dot.style.left = `${px * 100}%`; dot.style.top = `${py * 100}%`; textOverlay.style.left = `${px * 100}%`; textOverlay.style.top = `${py * 100}%`; $('#text-x').value = Math.round(px * Number(image.dataset.width || 540)); $('#text-y').value = Math.round((1 - py) * Number(image.dataset.height || 720)); });
+  $('#text-position-pad').hidden = false;
 } else { $('#text-field').remove(); $('#text-position-pad').remove(); }
 $('#files').multiple = name === 'merge' || name === 'image-pdf';
 const expandButton = $('#preview-expand');
@@ -39,5 +31,6 @@ $('#files').addEventListener('change', () => {
     else $('#preview-open').removeAttribute('href');
   });
 });
+if (name === 'text') $('#preview').hidden = true;
 let previewUrl='';$('#files').onchange=()=>{const files=[...$('#files').files];$('#file-label').textContent=files.map(f=>f.name).join(', ')||'ยังไม่ได้เลือกไฟล์';$('#run').textContent=files.length?'เริ่มประมวลผล':'เลือกไฟล์เพื่อเริ่ม';if(previewUrl)URL.revokeObjectURL(previewUrl);if(files.length){previewUrl=URL.createObjectURL(files[0]);$('#pdf-preview').src=previewUrl;$('#preview-open').href=previewUrl;$('#preview-meta').textContent=files.length>1?`${files.length} ไฟล์ · แสดงไฟล์แรก`:'ไฟล์แรก';$('#preview').hidden=false}else{$('#preview').hidden=true;$('#pdf-preview').removeAttribute('src')}};
 $('#operation-form').onsubmit=async e=>{e.preventDefault();const files=[...$('#files').files];if(!files.length)return;let endpoint,body=new FormData();files.forEach(f=>body.append(name==='merge'?'files':'file',f));if(name==='split'){endpoint='/api/split';body.append('pages',$('#pages').value)}else if(name==='rotate'){endpoint='/api/rotate';body.append('degrees',$('#degrees').value)}else if(name==='compress')endpoint='/api/compress';else if(name==='crop'){endpoint='/api/crop';['left','bottom','right','top'].forEach(side=>body.append(side,$('#crop-'+side).value));}else if(name==='text'){endpoint='/api/text';body.append('text',$('#text-value').value);body.append('x',$('#text-x').value);body.append('y',$('#text-y').value);body.append('size',$('#text-size').value);body.append('font',$('#text-font').value);body.append('color',$('#text-color').value);}else{$('#message').textContent='เครื่องมือนี้กำลังเตรียมเชื่อมต่อ';return}$('#run').disabled=true;$('#run').textContent='กำลังประมวลผล…';try{const r=await fetch(endpoint,{method:'POST',body});if(!r.ok)throw new Error(await r.text());const url=URL.createObjectURL(await r.blob());$('#pdf-preview').src=url;$('#preview-open').href=url;$('#preview-open').download=name+'.pdf';$('#preview-meta').textContent='ผลลัพธ์พร้อมตรวจสอบ';$('#preview').hidden=false;let download=$('#result-download');if(!download){download=document.createElement('a');download.id='result-download';download.className='primary';download.textContent='ดาวน์โหลด PDF';document.querySelector('.preview-head').append(download)}download.href=url;download.download=name+'.pdf';$('#message').textContent='ประมวลผลเสร็จแล้ว แสดงตัวอย่างก่อนดาวน์โหลด'}catch(err){$('#message').textContent='เกิดข้อผิดพลาด: '+err.message}finally{$('#run').disabled=false;$('#run').textContent='ประมวลผลอีกครั้ง'}};
