@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Download, ExternalLink, Maximize2, Minimize2, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import PartnerSpotlight from './PartnerSpotlight';
 
 export default function PdfPreview({
   previewUrl,
@@ -82,6 +83,12 @@ export default function PdfPreview({
       </div>
 
       <iframe src={previewUrl} title="ตัวอย่าง PDF" />
+
+      {!isExpanded && (
+        <div className="preview-partner-wrap">
+          <PartnerSpotlight variant="success-strip" />
+        </div>
+      )}
     </div>
   );
 }

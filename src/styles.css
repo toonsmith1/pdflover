@@ -1786,3 +1786,135 @@ footer {
 .spotlight-card.is-support .spotlight-action-btn:hover {
   background: #dfd6c8;
 }
+
+/* =========================================================
+   SUCCESS DOWNLOAD SCREEN - RECOMMENDATION STRIP
+========================================================= */
+.preview-partner-wrap {
+  margin-top: 12px;
+}
+
+.spotlight-success-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  background: #fffdfa;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 14px;
+  box-shadow: 0 2px 6px rgba(70, 58, 42, 0.03);
+  transition: all 0.16s ease;
+}
+
+.spotlight-success-strip.is-partner {
+  border-left: 3.5px solid #a33b28;
+}
+
+.spotlight-success-strip.is-support {
+  border-left: 3.5px solid #8c765c;
+  background: #faf8f4;
+}
+
+.success-strip-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.success-check-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 550;
+  color: #3b6639;
+  background: #edf5eb;
+  padding: 3px 8px;
+  border-radius: 12px;
+  border: 1px solid #c9e0c7;
+}
+
+.success-strip-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.success-strip-thumb {
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.success-strip-text {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 12.5px;
+  min-width: 0;
+}
+
+.success-strip-prompt {
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+
+.success-strip-name {
+  font-weight: 550;
+  color: var(--foreground);
+}
+
+.success-strip-price {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #a33b28;
+}
+
+.success-strip-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.spotlight-action-btn.small {
+  padding: 4px 11px;
+  font-size: 11.5px;
+  min-height: 30px;
+}
+
+.success-strip-close {
+  border: none;
+  background: transparent;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  padding: 3px;
+  border-radius: 3px;
+  display: grid;
+  place-items: center;
+}
+
+.success-strip-close:hover {
+  color: var(--foreground);
+  background: var(--secondary);
+}
+
+@media (max-width: 768px) {
+  .spotlight-success-strip {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .success-strip-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

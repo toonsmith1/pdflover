@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ExternalLink, Coffee, ShoppingBag, ShieldCheck, Tag, ArrowRight } from 'lucide-react';
+import { Coffee, ShoppingBag, ArrowRight, CheckCircle2, X } from 'lucide-react';
 
 const DEFAULT_CONFIG = {
   enabled: true,
@@ -26,13 +26,14 @@ const DEFAULT_CONFIG = {
   },
 };
 
-export default function PartnerSpotlight() {
+export default function PartnerSpotlight({ variant = 'card' }) {
   const [isOnline, setIsOnline] = useState(
     typeof navigator !== 'undefined' ? navigator.onLine : true
   );
   const [config, setConfig] = useState(DEFAULT_CONFIG);
   const [imageError, setImageError] = useState(false);
   const [previewMode, setPreviewMode] = useState(null); // 'shopee' | 'coffee' | null (auto)
+  const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -50,7 +51,7 @@ export default function PartnerSpotlight() {
         }
       }
     } catch {
-      // Ignore localStorage errors
+      // Ignore cache errors
     }
 
     return () => {
@@ -59,10 +60,79 @@ export default function PartnerSpotlight() {
     };
   }, []);
 
+  if (dismissed) return null;
+
   // Determine active view: manual preview override OR automatic network detection
-  const isPartner = previewMode === 'coffee' ? false : (previewMode === 'shopee' ? true : (isOnline && config.enabled));
+  const isPartner =
+    previewMode === 'coffee'
+      ? false
+      : previewMode === 'shopee'
+      ? true
+      : isOnline && config.enabled;
   const content = isPartner ? config.partner : config.support;
 
+  // VARIANT: Success Download Strip (Rendered under PDF Preview)
+  if (variant === 'success-strip') {
+    return (
+      <aside
+        className={`spotlight-success-strip ${isPartner ? 'is-partner' : 'is-support'}`}
+        aria-label="แนะนำหลังประมวลผลสำเร็จ"
+      >
+        <div className="success-strip-left">
+          <div className="success-check-badge">
+            <CheckCircle2 size={15} />
+            <span>พร้อมใช้งาน</span>
+          </div>
+        </div>
+
+        <div className="success-strip-content">
+          {isPartner && content.image && !imageError && (
+            <img
+              src={content.image}
+              alt={content.title}
+              className="success-strip-thumb"
+              loading="lazy"
+              onError={() => setImageError(true)}
+            />
+          )}
+
+          <div className="success-strip-text">
+            <span className="success-strip-prompt">
+              {isPartner ? '💡 เตรียมพิมพ์เอกสารนี้? แนะนำ:' : '☕ งานเสร็จราบรื่นและไฟล์ปลอดภัย?'}
+            </span>
+            <span className="success-strip-name">{content.title}</span>
+            {isPartner && content.price && (
+              <span className="success-strip-price">{content.price}</span>
+            )}
+          </div>
+        </div>
+
+        <div className="success-strip-right">
+          <a
+            href={content.targetUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="spotlight-action-btn small"
+          >
+            <span>{content.buttonText}</span>
+            <ArrowRight size={13} />
+          </a>
+
+          <button
+            type="button"
+            className="success-strip-close"
+            onClick={() => setDismissed(true)}
+            title="ปิดการแจ้งเตือนนี้"
+            aria-label="ปิด"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      </aside>
+    );
+  }
+
+  // DEFAULT VARIANT: Hero Card on Home Page
   return (
     <aside
       className={`spotlight-card ${isPartner ? 'is-partner is-shopee' : 'is-support'}`}
@@ -74,9 +144,7 @@ export default function PartnerSpotlight() {
           {isPartner ? <ShoppingBag size={12} /> : <Coffee size={12} />}
           {content.badge}
         </span>
-        <span className="spotlight-tag">
-          {content.tag}
-        </span>
+        <span className="spotlight-tag">{content.tag}</span>
       </div>
 
       {/* Main Content: Thumbnail + Text Details */}
@@ -111,7 +179,6 @@ export default function PartnerSpotlight() {
 
       {/* Card Footer: Action Link + Test Switcher */}
       <div className="spotlight-footer">
-        {/* Toggle to let user preview both Shopee & Buy Me a Coffee easily */}
         <button
           type="button"
           className="spotlight-switch-btn"
