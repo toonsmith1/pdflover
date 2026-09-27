@@ -113,8 +113,8 @@ async def add_text(file: Annotated[UploadFile, File(...)], items: Annotated[str,
     data = await file.read(); check_file(file, data)
     try:
         parsed_items = json.loads(items)
-        if not isinstance(parsed_items, list) or len(parsed_items) > 500:
-            raise ValueError("text items must be a list with at most 500 entries")
+        if not isinstance(parsed_items, list):
+            raise ValueError("text items must be a list")
         result = add_text_pdf(data, parsed_items)
     except (ValueError, TypeError, json.JSONDecodeError) as exc:
         raise HTTPException(400, str(exc)) from exc
