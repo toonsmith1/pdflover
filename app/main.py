@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Annotated, Any
 
 import pypdfium2 as pdfium
+from pythainlp.util import normalize
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
@@ -188,6 +189,20 @@ async def images_to_pdf(files: Annotated[list[UploadFile], File(...)]) -> Respon
         return Response(output.getvalue(), media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="images.pdf"'})
     except Exception as exc:
         raise HTTPException(400, f"Could not create PDF from images: {exc}") from exc
+
+
+@app.post("/api/extract-text")
+async def extract_text(file: Annotated[UploadFile, File(...)]) -> Response:
+    data = await file.read(); check_file(file, data)
+    try:
+        reader = PdfReader(BytesIO(data)); pages = []
+        for index, page in enumerate(reader.pages, 1):
+            text = normalize(page.extract_text() or "").strip()
+            pages.append(f"--- หน้า {index} ---\n{text}")
+        content = "\n\n".join(pages).encode("utf-8")
+        return Response(content, media_type="text/plain; charset=utf-8", headers={"Content-Disposition": 'attachment; filename="extracted-text.txt"'})
+    except Exception as exc:
+        raise HTTPException(400, f"Could not extract text: {exc}") from exc
 
 
 @app.post("/api/rotate")

@@ -15,6 +15,7 @@ import SignatureTool from './tools/SignatureTool';
 import GenericTool from './tools/GenericTool';
 import ImageTool from './tools/ImageTool';
 import ImagePdfTool from './tools/ImagePdfTool';
+import ExtractTextTool from './tools/ExtractTextTool';
 
 export default function ToolPage() {
   const { toolId } = useParams();
@@ -66,6 +67,8 @@ export default function ToolPage() {
         return <ImageTool />;
       case 'image-pdf':
         return <ImagePdfTool />;
+      case 'extract-text':
+        return <ExtractTextTool />;
       default:
         return <GenericTool toolId={toolId} />;
     }
