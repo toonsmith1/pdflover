@@ -171,12 +171,12 @@
       const response = await fetch('/api/merge', {method: 'POST', body});
       if (!response.ok) throw new Error(await response.text());
       const url = URL.createObjectURL(await response.blob());
-      const download = document.createElement('a');
-      download.href = url;
-      download.download = 'merged.pdf';
-      download.click();
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
-      message.textContent = 'รวม ' + entries.length + ' ไฟล์เรียบร้อย เริ่มดาวน์โหลดแล้ว';
+      viewer.replaceChildren(); viewer.hidden = false;
+      const title = document.createElement('p'); title.textContent = 'ตัวอย่างไฟล์ที่รวมแล้ว';
+      const frame = document.createElement('iframe'); frame.title = 'ตัวอย่างไฟล์ที่รวมแล้ว'; frame.src = url;
+      const download = button('ดาวน์โหลด PDF', () => { const link = document.createElement('a'); link.href = url; link.download = 'merged.pdf'; link.click(); });
+      viewer.append(title, download, button('ปิดตัวอย่าง', closePreview), frame);
+      message.textContent = 'รวม ' + entries.length + ' ไฟล์เรียบร้อย ตรวจสอบตัวอย่างก่อนดาวน์โหลดได้';
     } catch (error) {
       message.textContent = 'รวมไฟล์ไม่สำเร็จ: ' + error.message;
     } finally {
