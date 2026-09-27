@@ -59,6 +59,27 @@ def organize_pdf(data: bytes, order: list[int]) -> bytes:
     return output.getvalue()
 
 
+def protect_pdf(data: bytes, password: str) -> bytes:
+    if not password:
+        raise ValueError("password is required")
+    reader = PdfReader(BytesIO(data))
+    writer = PdfWriter()
+    writer.clone_document_from_reader(reader)
+    writer.encrypt(password)
+    output = BytesIO(); writer.write(output)
+    return output.getvalue()
+
+
+def unlock_pdf(data: bytes, password: str) -> bytes:
+    reader = PdfReader(BytesIO(data))
+    if reader.is_encrypted and not reader.decrypt(password):
+        raise ValueError("รหัสผ่านไม่ถูกต้อง")
+    writer = PdfWriter()
+    writer.clone_document_from_reader(reader)
+    output = BytesIO(); writer.write(output)
+    return output.getvalue()
+
+
 def rotate_pdf(
     data: bytes,
     degrees: int = 0,

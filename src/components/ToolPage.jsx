@@ -17,6 +17,7 @@ import ImageTool from './tools/ImageTool';
 import ImagePdfTool from './tools/ImagePdfTool';
 import ExtractTextTool from './tools/ExtractTextTool';
 import ExtractTableTool from './tools/ExtractTableTool';
+import SecurityTool from './tools/SecurityTool';
 
 export default function ToolPage() {
   const { toolId } = useParams();
@@ -72,6 +73,10 @@ export default function ToolPage() {
         return <ExtractTextTool />;
       case 'extract-table':
         return <ExtractTableTool />;
+      case 'protect':
+        return <SecurityTool mode="protect" />;
+      case 'unlock':
+        return <SecurityTool mode="unlock" />;
       default:
         return <GenericTool toolId={toolId} />;
     }

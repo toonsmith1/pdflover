@@ -25,8 +25,10 @@ from .pdf_service import (
     crop_pdf,
     merge_pdfs,
     organize_pdf,
+    protect_pdf,
     rotate_pdf,
     split_pdf,
+    unlock_pdf,
 )
 from PIL import Image
 
@@ -204,6 +206,26 @@ async def extract_text(file: Annotated[UploadFile, File(...)]) -> Response:
         return Response(content, media_type="text/plain; charset=utf-8", headers={"Content-Disposition": 'attachment; filename="extracted-text.txt"'})
     except Exception as exc:
         raise HTTPException(400, f"Could not extract text: {exc}") from exc
+
+
+@app.post("/api/protect")
+async def protect(file: Annotated[UploadFile, File(...)], password: Annotated[str, Form(...)]) -> Response:
+    data = await file.read(); check_file(file, data)
+    try:
+        result = protect_pdf(data, password)
+    except Exception as exc:
+        raise HTTPException(400, f"Could not protect PDF: {exc}") from exc
+    return Response(result, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="protected.pdf"'})
+
+
+@app.post("/api/unlock")
+async def unlock(file: Annotated[UploadFile, File(...)], password: Annotated[str, Form(...)]) -> Response:
+    data = await file.read(); check_file(file, data)
+    try:
+        result = unlock_pdf(data, password)
+    except Exception as exc:
+        raise HTTPException(400, f"Could not unlock PDF: {exc}") from exc
+    return Response(result, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="unlocked.pdf"'})
 
 
 @app.post("/api/extract-table")
