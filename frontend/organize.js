@@ -4,13 +4,17 @@
   const picker = document.querySelector('#files');
   const run = document.querySelector('#run');
   const message = document.querySelector('#message');
+  const previewFrame = document.querySelector('#pdf-preview');
+  const previewBox = document.querySelector('#preview');
+  const previewOpen = document.querySelector('#preview-open');
+  const previewMeta = document.querySelector('#preview-meta');
   const panel = document.createElement('div'); panel.className = 'page-order-grid'; panel.hidden = true;
   panel.innerHTML = '<strong>ลากหน้าเพื่อจัดลำดับ</strong><div class="page-cards"></div>';
   form.querySelector('.tool-controls').append(panel);
   const cards = panel.querySelector('.page-cards'); let order = [], dragged = null;
   function paint() {
     [...cards.children].forEach((card, index) => { card.dataset.page = order[index]; card.querySelector('b').textContent = `หน้า ${order[index]}`; });
-    run.disabled = !order.length; run.textContent = order.length ? 'บันทึกลำดับหน้า' : 'เลือกไฟล์เพื่อเริ่ม';
+    run.disabled = !order.length; run.textContent = order.length ? 'สร้างตัวอย่างลำดับใหม่' : 'เลือกไฟล์เพื่อเริ่ม';
   }
   function render(count) {
     order = Array.from({length: count}, (_, i) => i + 1);
@@ -31,10 +35,21 @@
     catch (error) { message.textContent = error.message; }
   });
   form.addEventListener('submit', async event => {
-    if (!order.length) return; event.preventDefault(); run.disabled = true; run.textContent = 'กำลังจัดเรียง…';
+    if (!order.length) return; event.preventDefault(); run.disabled = true; run.textContent = 'กำลังสร้างตัวอย่าง…';
     const body = new FormData(); body.append('file', picker.files[0]); body.append('order', order.join(','));
-    try { const response = await fetch('/api/organize', {method: 'POST', body}); if (!response.ok) throw new Error(await response.text()); const url = URL.createObjectURL(await response.blob()); const link = document.createElement('a'); link.href = url; link.download = 'organized.pdf'; link.click(); message.textContent = 'จัดเรียงเสร็จแล้ว — ดาวน์โหลดไฟล์เรียบร้อย'; }
+    try {
+      const response = await fetch('/api/organize', {method: 'POST', body});
+      if (!response.ok) throw new Error(await response.text());
+      const url = URL.createObjectURL(await response.blob());
+      previewFrame.src = url; previewOpen.href = url; previewOpen.download = 'organized.pdf';
+      previewMeta.textContent = `${order.length} หน้า · ตัวอย่างลำดับใหม่`;
+      previewBox.hidden = false;
+      let download = document.querySelector('#organize-download');
+      if (!download) { download = document.createElement('a'); download.id = 'organize-download'; download.className = 'primary'; download.textContent = 'ดาวน์โหลด PDF'; document.querySelector('.preview-head').append(download); }
+      download.href = url; download.download = 'organized.pdf';
+      message.textContent = 'แสดงตัวอย่างลำดับใหม่แล้ว ตรวจสอบก่อนดาวน์โหลดได้';
+    }
     catch (error) { message.textContent = `เกิดข้อผิดพลาด: ${error.message}`; }
-    finally { run.disabled = false; run.textContent = 'บันทึกลำดับหน้า'; }
+    finally { run.disabled = false; run.textContent = 'สร้างตัวอย่างลำดับใหม่'; }
   });
 })();
