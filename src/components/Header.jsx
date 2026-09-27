@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { FileStack, ArrowLeft, HardDrive, Sparkles } from 'lucide-react';
 import { TOOL_MAP } from '../data/tools';
+import logoImage from '../assets/pdflover-logo.png';
 
 const CURRENT_VERSION = '1.0.0';
 const GITHUB_REPO = 'toonsmith1/pdflover';
@@ -105,9 +106,7 @@ export default function Header() {
     <header className="site-header wrap">
       <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
         <Link to="/" className="brand" title="กลับหน้าหลัก">
-          <div className="brand-logo-icon">
-            <FileStack size={18} strokeWidth={2} />
-          </div>
+          <div className="brand-logo-icon"><img src={logoImage} alt="pdflover" /></div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <strong>pdflover</strong>
