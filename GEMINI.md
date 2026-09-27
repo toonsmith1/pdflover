@@ -1,25 +1,47 @@
-# PDF Lover project context
+# PDF Lover project handoff for Gemini
 
-Treat this file as the current handoff state for Gemini-based agents.
+Read `AGENTS.md` before editing. It contains shared behavior requirements and repository guidance.
 
-## Status
+## Repository state
 
-PDF Lover is a local-first PDF toolbox MVP in `/home/kriangkrai/Documents/pdflover`. The FastAPI server and frontend are already working locally. The latest commit is `5a5830e`; the remote is `https://github.com/toonsmith1/pdflover.git`. A push was attempted but failed only because the machine has no GitHub authentication configured.
+- Project: `/home/kriangkrai/Documents/pdflover`
+- Backend: FastAPI/Python in `app/`
+- Frontend: plain HTML, CSS, and JavaScript in `frontend/`
+- Git branch: `main`; GitHub remote: `git@github.com:toonsmith1/pdflover.git`
+- At the start of this handoff, local and remote `main` matched at `faf3d6d` (`feat: lay out PDF text editor workspace`).
+- The local `.env` and `.venv` are ignored and must stay out of Git.
 
-Do not assume the project is still at the original static preview stage. Inspect the current files before making changes.
+Implemented PDF operations: merge, split, compress, rotate, organize/reorder, crop, and add text. The other catalog menus are not yet fully implemented on the backend.
 
-## UX contract
+## Text editor behavior
 
-Use a clear separate page for each tool (`/tool/<name>`), with a large upload area first and preview/settings after upload. Do not hide the tools in a grid on the tool page. The home page may show a catalog of tools. The style is restrained Muji: neutral colors, generous whitespace, responsive width, and plain Thai labels.
+The add-text tool uses a page image rendered from the selected PDF. Users can add multiple text boxes, edit Thai text, move them with the mouse, change each item's size/font/color, and remove items. The next stage submits all non-empty items to Python, embeds them into the PDF, then displays the generated PDF for inspection and download. Do not display the original PDF viewer during placement on the image.
 
-The merge page must allow selecting files more than once without replacing the existing list. It displays uploaded files as a responsive grid, supports drag-and-drop reorder, individual preview, remove, add more, and merge.
+## Possible frontend evolution
 
-## Architecture
+The current vanilla JavaScript editor is becoming stateful. Vite + React could make selection, dragging, item lists, toolbar state, and editor interactions easier to maintain while Python/FastAPI continues doing PDF work. Node.js can serve as frontend build tooling; replacing the Python PDF backend is not recommended. This remains an option to discuss, not an approved migration. Do not start a rewrite without explicit direction; if approved, migrate incrementally and preserve working routes.
 
-`app/main.py` owns FastAPI routes; `app/pdf_service.py` owns local PDF processing; `frontend/tool.html` is the shared shell; `frontend/upload-flow.js` handles most tool flows; `frontend/merge.js` handles merge-specific behavior; `frontend/styles.css` contains responsive styling. `requirements.txt` is the runtime manifest and `.env.example` documents configuration.
+## Important files
 
-OCR is intentionally remote through Typhoon OCR API. Do not add a large OCR model or GPU-only dependency to the default install.
+- `app/main.py`: API and page routes, including `/api/render-preview` and `/api/text`.
+- `app/pdf_service.py`: PDF processing and text/font embedding.
+- `frontend/index.html`, `frontend/app.js`: catalog page.
+- `frontend/tool.html`, `frontend/tool.js`: shared tool layout and operations.
+- `frontend/upload-flow.js`: staged upload flow.
+- `frontend/text-preview.js`: image text editor.
+- `frontend/merge.js`, `frontend/organize.js`: specialized flows.
+- `frontend/styles.css`: layout and styling.
+- `requirements.txt`, `setup.sh`: installation.
 
-## Working rules
+Keep the Muji-inspired neutral style, one route per tool, and OCR through Typhoon's remote API. Do not add a GPU-only or large local OCR dependency.
 
-Keep secrets in `.env`, never frontend code or Git. Prefer small, focused edits. Test with the local server and real small PDFs when changing upload/preview behavior. Check `git status`, `git diff --check`, and do not commit generated secrets, virtual environments, or user documents.
+## Run and continue
+
+```bash
+source .venv/bin/activate
+python -m uvicorn app.main:app --reload
+```
+
+Before editing, inspect `git status` and the current source. Do not trust stale README claims over the implementation. Run `git diff --check` before committing. Never add `.env`, `.venv`, user PDFs, or generated output.
+
+Next likely tasks: implement watermark/page numbering, connect remaining tool menus, integrate Typhoon OCR, add focused tests, improve error handling, and refresh README/deployment/licensing notes.

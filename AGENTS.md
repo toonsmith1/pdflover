@@ -1,41 +1,55 @@
 # Agent instructions for PDF Lover
 
-## Repository state
+## Current project state
 
-The current implementation is an MVP in `/home/kriangkrai/Documents/pdflover`.
+PDF Lover is an active local-first PDF toolbox MVP in `/home/kriangkrai/Documents/pdflover`.
 
-- Backend: FastAPI in `app/`.
-- Frontend: plain HTML/CSS/JavaScript in `frontend/`.
-- Local PDF operations: `app/pdf_service.py`.
-- Runtime dependencies: `requirements.txt`.
-- Setup helper: `setup.sh`.
-- Current commit: `5a5830e feat: add local-first PDF web app`.
-- Remote push still requires GitHub authentication.
+- Backend: FastAPI in `app/`; frontend: plain HTML, CSS, and JavaScript in `frontend/`.
+- Main branch is `main`; GitHub remote is `git@github.com:toonsmith1/pdflover.git`.
+- At the start of this handoff, local and GitHub `main` were synchronized at `faf3d6d` (`feat: lay out PDF text editor workspace`).
+- `.env` and `.venv` are local and ignored. Never commit secrets, virtual environments, generated PDFs, or user uploads.
+- Check `git status` before editing and preserve any existing user changes.
 
-## Required behavior
+## Product and UX contract
 
-1. Preserve one page per tool: each menu links to `/tool/<tool_name>`.
-2. Keep upload separate from the settings/preview stage.
-3. Every file input must support repeated selection where the tool accepts multiple files; a later selection must append, not replace, prior files.
-4. Merge must show a responsive column grid of file cards, support drag reorder, file removal, add-more, and per-file preview.
-5. Keep the UI responsive and lightweight. Do not introduce a heavy frontend framework or local OCR model without a clear reason.
-6. OCR should call the configured Typhoon OCR API. Keep API keys server-side in `.env`.
+1. Keep one route/page per tool: `/tool/<tool_name>`.
+2. Most tools use a separate file-selection step followed by tool settings and preview.
+3. Merge accepts files across repeated selections, shows a responsive grid, supports reorder, individual preview, removal, add-more, and merge.
+4. The text editor has three stages: select a PDF; edit text over a rendered page image; process and inspect the resulting PDF before downloading. Do not show the source PDF viewer while placing text.
+5. Text editing supports multiple text items, each with editable Thai text, position, size, font, and color. All non-empty items are embedded in the generated PDF. The editor is a DOM/CSS overlay on a rendered PDF image.
+6. Keep the restrained Muji visual style, responsive layout, Thai UI labels, and lightweight frontend.
+7. OCR is intended to use the remote Typhoon OCR API. Do not add a large local OCR model or GPU-only dependency to default installation.
 
-## Before editing
+## Implemented PDF operations
 
-Read the relevant existing file and check `git status`. Do not overwrite newer work based on old README claims. Run `git diff --check` before committing. Do not commit `.env`, `.venv`, generated PDFs, or uploaded user files.
+The backend currently implements merge, split, compress, rotate, organize/reorder, crop, and add-text. It also has PDF page-count and image-preview routes. Other catalog menus still need backend implementations, including OCR, watermark, page numbering, signature, image conversion, extraction, protection/unlock, and redaction.
 
-## Validation
+## Important files
 
-Run the app with:
+- `app/main.py`: FastAPI API and page routes.
+- `app/pdf_service.py`: PDF transformations and Thai font embedding.
+- `app/config.py`: environment configuration.
+- `frontend/index.html`, `frontend/app.js`: home tool catalog.
+- `frontend/tool.html`, `frontend/tool.js`: shared tool shell and form behavior.
+- `frontend/upload-flow.js`: upload and settings stages.
+- `frontend/merge.js`: merge-specific upload, order, and preview flow.
+- `frontend/organize.js`: page reordering UI.
+- `frontend/text-preview.js`: image-based multi-text editor and processing stages.
+- `frontend/styles.css`: responsive UI and editor styles.
+- `requirements.txt`, `requirements-dev.txt`, `setup.sh`: dependencies and setup.
+
+## Running the app
 
 ```bash
 source .venv/bin/activate
 python -m uvicorn app.main:app --reload
 ```
 
-Smoke-test `/`, `/tool/compress`, `/tool/split`, and `/tool/merge`. For merge, select files in separate chooser actions and verify both remain visible and can be reordered. Run `ruff check .` and relevant tests when available.
+Open `http://127.0.0.1:8000/`. Run `git diff --check` before committing. For code changes, validate the affected behavior and run available checks such as `ruff check .` and relevant tests.
 
-## Open tasks
+## Open work
 
-Implement the remaining backend tool operations, add the Typhoon OCR adapter, strengthen temporary-file/error handling, add tests, refresh README's status section, and document production deployment/licensing choices.
+- Implement remaining catalog operations, prioritizing watermark and page numbering after the current add-text editor.
+- Add Typhoon OCR API integration and document its data flow.
+- Improve temporary-file/error handling and add meaningful tests.
+- Update README status text and production/deployment/licensing guidance.
