@@ -62,13 +62,11 @@ def organize_pdf(data: bytes, order: list[int]) -> bytes:
 def protect_pdf(data: bytes, password: str) -> bytes:
     if not password:
         raise ValueError("password is required")
-    reader = PdfReader(BytesIO(data))
-    writer = PdfWriter()
-    writer.clone_document_from_reader(reader)
-    # Pass both values explicitly. This avoids the owner-password hashing path
-    # in older pypdf/cryptography combinations that expects encoded strings.
-    writer.encrypt(user_password=password, owner_password=password)
-    output = BytesIO(); writer.write(output)
+    output = BytesIO()
+    # pikepdf handles UTF-8 passwords; pypdf's legacy encryption path can
+    # raise ``Strings must be encoded before hashing`` for Thai passwords.
+    with pikepdf.open(BytesIO(data)) as pdf:
+        pdf.save(output, encryption=pikepdf.Encryption(user=password, owner=password, R=6, aes=True))
     return output.getvalue()
 
 
