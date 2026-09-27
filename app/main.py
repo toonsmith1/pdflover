@@ -76,7 +76,13 @@ async def public_ads() -> dict[str, Any]:
         # Keep locally packaged media as a fallback while GitHub's raw CDN
         # propagates a campaign update.
         local_by_id = {item.get("id"): item for item in list_campaigns()}
-        campaigns = [{**local_by_id.get(item.get("id"), {}), **item} for item in campaigns]
+        campaigns = [
+            {
+                **local_by_id.get(item.get("id"), {}),
+                **{key: value for key, value in item.items() if value not in (None, "")},
+            }
+            for item in campaigns
+        ]
     campaigns = [item for item in campaigns if item.get("enabled", False)]
     return {"campaigns": campaigns}
 
