@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pypdf import PdfReader
+import pypdfium2 as pdfium
 
 from .config import get_settings
 from .pdf_service import add_text_pdf, compress_pdf, crop_pdf, merge_pdfs, organize_pdf, rotate_pdf, split_pdf
@@ -114,6 +115,19 @@ async def add_text(file: Annotated[UploadFile, File(...)], text: Annotated[str, 
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc
     return Response(result, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="text-added.pdf"'})
+
+
+@app.post("/api/render-preview")
+async def render_preview(file: Annotated[UploadFile, File(...)]) -> Response:
+    data = await file.read(); check_file(file, data)
+    try:
+        document = pdfium.PdfDocument(data)
+        bitmap = document[0].render(scale=1.5)
+        image = bitmap.to_pil()
+        output = BytesIO(); image.save(output, format="PNG")
+        return Response(output.getvalue(), media_type="image/png")
+    except Exception as exc:
+        raise HTTPException(400, f"Could not render PDF preview: {exc}") from exc
 
 
 @app.post("/api/compress")
