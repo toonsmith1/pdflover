@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     typhoon_ocr_api_key: str = ""
     typhoon_ocr_base_url: str = ""
     ads_admin_token: str = ""
+    ads_feed_url: str = "https://raw.githubusercontent.com/toonsmith1/pdflover/main/ads/campaigns/active.json"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

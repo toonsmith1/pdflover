@@ -1,0 +1,16 @@
+{
+  "campaigns": [
+    {
+      "id": "pdflover-support",
+      "enabled": true,
+      "placement": "all",
+      "badge": "สนับสนุน PDF Lover",
+      "tag": "LOCAL-FIRST • ปลอดภัย",
+      "title": "ชอบที่เอกสารไม่ออกนอกเครื่อง?",
+      "description": "ร่วมสนับสนุนให้เราพัฒนาเครื่องมือ PDF ปลอดภัยต่อไป",
+      "image": "",
+      "button_text": "สนับสนุนผู้พัฒนา",
+      "target_url": "https://buymeacoffee.com"
+    }
+  ]
+}

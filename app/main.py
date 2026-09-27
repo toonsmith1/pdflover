@@ -13,6 +13,7 @@ from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pypdf import PdfReader
 import pdfplumber
+import httpx
 
 from .config import get_settings
 from .ads_service import delete_campaign, get_campaign, list_campaigns, save_campaign, token_matches
@@ -57,9 +58,21 @@ def health() -> dict[str, str]:
 
 
 @app.get("/api/ads")
-def public_ads() -> dict[str, Any]:
-    """Return only enabled campaigns for public ad placements."""
-    campaigns = [item for item in list_campaigns() if item.get("enabled", False)]
+async def public_ads() -> dict[str, Any]:
+    """Return enabled campaigns from the versioned Git feed, with local fallback."""
+    campaigns = []
+    if settings.ads_feed_url:
+        try:
+            async with httpx.AsyncClient(timeout=4) as client:
+                response = await client.get(settings.ads_feed_url)
+                response.raise_for_status()
+                remote = response.json()
+                campaigns = remote if isinstance(remote, list) else remote.get("campaigns", [])
+        except (httpx.HTTPError, ValueError):
+            campaigns = []
+    if not campaigns:
+        campaigns = list_campaigns()
+    campaigns = [item for item in campaigns if item.get("enabled", False)]
     return {"campaigns": campaigns}
 
 

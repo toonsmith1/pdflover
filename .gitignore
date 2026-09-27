@@ -48,6 +48,3 @@ src/data/*.local.*
 secrets/
 private/
 *.private.*
-
-# Personal advertising campaigns and assets stay on the local machine.
-ads/
