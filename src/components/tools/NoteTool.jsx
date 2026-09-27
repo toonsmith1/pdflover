@@ -47,6 +47,41 @@ const NOTE_COLORS = [
   { bg: '#f7f4ed', border: '#d5cec5', text: '#3c3630', label: 'Muji ครีม' },
 ];
 
+function distanceToSegment(px, py, x1, y1, x2, y2) {
+  const l2 = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
+  if (l2 === 0) return Math.hypot(px - x1, py - y1);
+  let t = ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / l2;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(px - (x1 + t * (x2 - x1)), py - (y1 + t * (y2 - y1)));
+}
+
+function hitStroke(stroke, ex, ey, radius = 24) {
+  if (stroke.tool === 'rect') {
+    const x1 = stroke.x;
+    const y1 = stroke.y;
+    const x2 = stroke.x + stroke.widthPx;
+    const y2 = stroke.y + stroke.heightPx;
+    const dTop = distanceToSegment(ex, ey, x1, y1, x2, y1);
+    const dBottom = distanceToSegment(ex, ey, x1, y2, x2, y2);
+    const dLeft = distanceToSegment(ex, ey, x1, y1, x1, y2);
+    const dRight = distanceToSegment(ex, ey, x2, y1, x2, y2);
+    return Math.min(dTop, dBottom, dLeft, dRight) <= radius;
+  }
+  if (!stroke.points || stroke.points.length === 0) return false;
+  if (stroke.points.length === 1) {
+    const p = stroke.points[0];
+    return Math.hypot(p.x - ex, p.y - ey) <= radius;
+  }
+  for (let i = 0; i < stroke.points.length - 1; i++) {
+    const p1 = stroke.points[i];
+    const p2 = stroke.points[i + 1];
+    if (distanceToSegment(ex, ey, p1.x, p1.y, p2.x, p2.y) <= radius) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export default function NoteTool() {
   const [file, setFile] = useState(null);
   const [step, setStep] = useState('select'); // 'select' | 'annotate' | 'download'
@@ -81,6 +116,18 @@ export default function NoteTool() {
   const isDrawingRef = useRef(false);
   const currentStrokeRef = useRef(null);
   const containerRef = useRef(null);
+  const historyStackRef = useRef({});
+
+  const saveSnapshot = useCallback(() => {
+    const pageData = pageAnnotations[currentPage] || { strokes: [], notes: [] };
+    if (!historyStackRef.current[currentPage]) {
+      historyStackRef.current[currentPage] = [];
+    }
+    historyStackRef.current[currentPage].push(JSON.parse(JSON.stringify(pageData)));
+    if (historyStackRef.current[currentPage].length > 40) {
+      historyStackRef.current[currentPage].shift();
+    }
+  }, [pageAnnotations, currentPage]);
 
   // Cleanup object URLs on unmount
   useEffect(() => {
@@ -211,11 +258,32 @@ export default function NoteTool() {
     };
   };
 
+  // Erase strokes touching coordinate
+  const eraseAtCoords = (coords) => {
+    setPageAnnotations((prev) => {
+      const pageData = prev[currentPage] || { strokes: [], notes: [] };
+      const remainingStrokes = pageData.strokes.filter(
+        (s) => !hitStroke(s, coords.x, coords.y, 22)
+      );
+      if (remainingStrokes.length !== pageData.strokes.length) {
+        return {
+          ...prev,
+          [currentPage]: {
+            ...pageData,
+            strokes: remainingStrokes,
+          },
+        };
+      }
+      return prev;
+    });
+  };
+
   // Drawing Handlers
   const handleMouseDown = (e) => {
+    const coords = getCanvasCoords(e);
+
     if (activeTool === 'note') {
-      // Place new sticky note
-      const coords = getCanvasCoords(e);
+      saveSnapshot();
       const newNote = {
         id: `note_${Date.now()}`,
         x: coords.x,
@@ -239,10 +307,15 @@ export default function NoteTool() {
       return;
     }
 
-    if (activeTool === 'eraser') return;
+    if (activeTool === 'eraser') {
+      saveSnapshot();
+      isDrawingRef.current = true;
+      eraseAtCoords(coords);
+      return;
+    }
 
+    saveSnapshot();
     isDrawingRef.current = true;
-    const coords = getCanvasCoords(e);
 
     if (activeTool === 'rect') {
       currentStrokeRef.current = {
@@ -263,7 +336,15 @@ export default function NoteTool() {
   };
 
   const handleMouseMove = (e) => {
-    if (!isDrawingRef.current || !currentStrokeRef.current) return;
+    if (!isDrawingRef.current) return;
+
+    if (activeTool === 'eraser') {
+      const coords = getCanvasCoords(e);
+      eraseAtCoords(coords);
+      return;
+    }
+
+    if (!currentStrokeRef.current) return;
     const coords = getCanvasCoords(e);
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -308,11 +389,14 @@ export default function NoteTool() {
   };
 
   const handleMouseUp = (e) => {
-    if (!isDrawingRef.current || !currentStrokeRef.current) {
-      isDrawingRef.current = false;
+    if (!isDrawingRef.current) return;
+    isDrawingRef.current = false;
+
+    if (activeTool === 'eraser') {
       return;
     }
-    isDrawingRef.current = false;
+
+    if (!currentStrokeRef.current) return;
 
     let completedStroke = null;
     if (currentStrokeRef.current.tool === 'rect') {
@@ -353,11 +437,30 @@ export default function NoteTool() {
     }
   };
 
-  // Undo Last Action
+  // Undo Last Action (from snapshot history)
   const handleUndo = () => {
+    const stack = historyStackRef.current[currentPage];
+    if (stack && stack.length > 0) {
+      const prevState = stack.pop();
+      setPageAnnotations((prev) => ({
+        ...prev,
+        [currentPage]: prevState,
+      }));
+      return;
+    }
+
+    // Fallback: pop last stroke or note
     setPageAnnotations((prev) => {
       const pageData = prev[currentPage] || { strokes: [], notes: [] };
-      if (!pageData.strokes.length && !pageData.notes.length) return prev;
+      if (pageData.strokes.length > 0) {
+        return {
+          ...prev,
+          [currentPage]: {
+            ...pageData,
+            strokes: pageData.strokes.slice(0, -1),
+          },
+        };
+      }
       if (pageData.notes.length > 0) {
         return {
           ...prev,
@@ -367,18 +470,18 @@ export default function NoteTool() {
           },
         };
       }
-      return {
-        ...prev,
-        [currentPage]: {
-          ...pageData,
-          strokes: pageData.strokes.slice(0, -1),
-        },
-      };
+      return prev;
     });
   };
 
-  // Clear current page annotations
+  // Clear current page annotations with confirmation and undoable snapshot
   const handleClearPage = () => {
+    const pageData = pageAnnotations[currentPage];
+    if (!pageData || (!pageData.strokes?.length && !pageData.notes?.length)) return;
+    if (!window.confirm('ต้องการล้างลายเส้นและโน้ตทั้งหมดในหน้านี้ใช่หรือไม่? (สามารถกดย้อนกลับ Undo เพื่อกู้คืนได้)')) {
+      return;
+    }
+    saveSnapshot();
     setPageAnnotations((prev) => ({
       ...prev,
       [currentPage]: { strokes: [], notes: [] },
@@ -401,6 +504,7 @@ export default function NoteTool() {
 
   // Delete note
   const handleDeleteNote = (id) => {
+    saveSnapshot();
     setPageAnnotations((prev) => {
       const pageData = prev[currentPage] || { strokes: [], notes: [] };
       return {
@@ -644,6 +748,17 @@ export default function NoteTool() {
                 <span>กรอบ</span>
               </button>
 
+              {/* 5. Eraser */}
+              <button
+                type="button"
+                className={`note-tool-btn ${activeTool === 'eraser' ? 'active' : ''}`}
+                onClick={() => setActiveTool('eraser')}
+                title="ยางลบ / ลบเฉพาะลายเส้นหรือไฮไลต์ที่ต้องการ"
+              >
+                <Eraser size={16} />
+                <span>ยางลบ</span>
+              </button>
+
               {/* Divider */}
               <span className="note-tool-divider" />
 
@@ -652,18 +767,20 @@ export default function NoteTool() {
                 type="button"
                 className="note-tool-btn text-muted"
                 onClick={handleUndo}
-                title="ย้อนกลับ (Undo)"
+                title="ย้อนกลับ (Undo - กู้คืนสิ่งที่ลบได้)"
               >
                 <Undo2 size={16} />
+                <span>ย้อนกลับ</span>
               </button>
 
               <button
                 type="button"
                 className="note-tool-btn text-danger"
                 onClick={handleClearPage}
-                title="ล้างที่วาดในหน้านี้ทั้งหมด"
+                title="ล้างที่วาดในหน้านี้ทั้งหมด (Clear Page)"
               >
                 <Trash2 size={16} />
+                <span>ล้างทั้งหน้า</span>
               </button>
             </div>
 
@@ -811,6 +928,14 @@ export default function NoteTool() {
                 <span className="strip-hint">💡 ลากเมาส์เป็นสี่เหลี่ยมเพื่อสร้างกรอบเน้นข้อความ</span>
               </div>
             )}
+
+            {activeTool === 'eraser' && (
+              <div className="sub-strip-options">
+                <span className="strip-hint">
+                  🧹 โหมดยางลบ: คลิกหรือลากเมาส์ผ่านเส้นวาด ไฮไลต์ หรือกรอบ เพื่อลบเฉพาะจุดที่ต้องการ (หากเผลอลบ กดปุ่ม &quot;ย้อนกลับ&quot; เพื่อกู้คืนได้เสมอ)
+                </span>
+              </div>
+            )}
           </div>
 
           {/* MAIN CANVAS VIEWER CONTAINER */}
@@ -841,7 +966,7 @@ export default function NoteTool() {
                 ref={canvasRef}
                 width={1200}
                 height={1700}
-                className="note-drawing-canvas"
+                className={`note-drawing-canvas tool-${activeTool}`}
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}

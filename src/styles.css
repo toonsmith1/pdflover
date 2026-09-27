@@ -4421,6 +4421,14 @@ footer {
   z-index: 5;
 }
 
+.note-drawing-canvas.tool-eraser {
+  cursor: cell;
+}
+
+.note-drawing-canvas.tool-note {
+  cursor: copy;
+}
+
 /* Interactive Sticky Notes */
 .interactive-sticky-note {
   position: absolute;
