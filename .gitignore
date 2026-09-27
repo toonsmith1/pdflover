@@ -48,3 +48,4 @@ src/data/*.local.*
 secrets/
 private/
 *.private.*
+ads.md
