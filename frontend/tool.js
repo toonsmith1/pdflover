@@ -14,7 +14,7 @@ if (name === 'text') {
   dot.addEventListener('pointerdown', event => { moving = true; dot.setPointerCapture(event.pointerId); });
   dot.addEventListener('pointerup', () => { moving = false; });
   dot.addEventListener('pointermove', event => { if (!moving) return; const rect = pad.getBoundingClientRect(); const x = Math.max(0, Math.min(540, (event.clientX - rect.left) / rect.width * 540)); const y = Math.max(0, Math.min(720, (1 - (event.clientY - rect.top) / rect.height) * 720)); dot.style.left = `${x / 540 * 100}%`; dot.style.top = `${(1 - y / 720) * 100}%`; $('#text-x').value = Math.round(x); $('#text-y').value = Math.round(y); });
-+} else { $('#text-field').remove(); $('#text-position-pad').remove(); }
+} else { $('#text-field').remove(); $('#text-position-pad').remove(); }
 $('#files').multiple = name === 'merge' || name === 'image-pdf';
 const expandButton = $('#preview-expand');
 function setExpanded(expanded) {
