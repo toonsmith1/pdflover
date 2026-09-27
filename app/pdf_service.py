@@ -1,0 +1,77 @@
+from io import BytesIO
+import shutil
+import subprocess
+import tempfile
+import pikepdf
+from pypdf import PdfReader, PdfWriter
+
+
+def merge_pdfs(files: list[bytes]) -> bytes:
+    writer = PdfWriter()
+    for data in files:
+        reader = PdfReader(BytesIO(data))
+        for page in reader.pages:
+            writer.add_page(page)
+    output = BytesIO()
+    writer.write(output)
+    return output.getvalue()
+
+
+def split_pdf(data: bytes, pages: list[int]) -> bytes:
+    reader = PdfReader(BytesIO(data))
+    writer = PdfWriter()
+    for page_number in pages:
+        index = page_number - 1
+        if index < 0 or index >= len(reader.pages):
+            raise ValueError(f"Page {page_number} is outside the document")
+        writer.add_page(reader.pages[index])
+    output = BytesIO()
+    writer.write(output)
+    return output.getvalue()
+
+
+def rotate_pdf(data: bytes, degrees: int) -> bytes:
+    if degrees not in {90, 180, 270}:
+        raise ValueError("degrees must be 90, 180, or 270")
+    reader = PdfReader(BytesIO(data))
+    writer = PdfWriter()
+    for page in reader.pages:
+        page.rotate(degrees)
+        writer.add_page(page)
+    output = BytesIO()
+    writer.write(output)
+    return output.getvalue()
+
+
+def compress_pdf(data: bytes, quality: str = "balanced") -> bytes:
+    if quality not in {"low", "balanced", "high"}:
+        raise ValueError("quality must be low, balanced, or high")
+    # Ghostscript can downsample raster images, which are usually the largest
+    # part of scanned PDFs. Fall back to stream repacking when it is unavailable.
+    if shutil.which("gs"):
+        preset = {"low": "/printer", "balanced": "/ebook", "high": "/screen"}[quality]
+        with tempfile.TemporaryDirectory(prefix="pdflover-") as folder:
+            source = f"{folder}/source.pdf"
+            target = f"{folder}/result.pdf"
+            with open(source, "wb") as handle:
+                handle.write(data)
+            subprocess.run(
+                ["gs", "-q", "-dSAFER", "-dBATCH", "-dNOPAUSE", "-sDEVICE=pdfwrite", f"-dPDFSETTINGS={preset}", f"-sOutputFile={target}", source],
+                check=True,
+                capture_output=True,
+            )
+            with open(target, "rb") as handle:
+                return handle.read()
+    # Repack streams and object tables. This reduces PDFs with redundant
+    # streams; raster image downsampling is intentionally a later step because
+    # it requires a quality target and can visibly change document output.
+    pdf = pikepdf.Pdf.open(BytesIO(data))
+    output = BytesIO()
+    pdf.save(
+        output,
+        compress_streams=True,
+        recompress_flate=True,
+        object_stream_mode=pikepdf.ObjectStreamMode.generate,
+        linearize=quality == "low",
+    )
+    return output.getvalue()

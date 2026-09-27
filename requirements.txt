@@ -1,0 +1,11 @@
+# Runtime dependencies for the local PDF service
+fastapi>=0.115,<1
+uvicorn[standard]>=0.34,<1
+python-multipart>=0.0.20,<1
+httpx>=0.28,<1
+pypdf>=5.4,<6
+pikepdf>=9.5,<10
+pillow>=11,<12
+pypdfium2>=4.30,<5
+python-dotenv>=1.0,<2
+pydantic-settings>=2.7,<3

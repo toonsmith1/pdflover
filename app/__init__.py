@@ -1,0 +1,1 @@
+"""PDF Lover application package."""
