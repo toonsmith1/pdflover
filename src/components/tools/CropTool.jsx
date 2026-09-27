@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import DropZone from '../common/DropZone';
 import PdfPreview from '../common/PdfPreview';
+import DownloadScreen from '../common/DownloadScreen';
 
 export default function CropTool() {
   const [file, setFile] = useState(null);
-  const [step, setStep] = useState('select');
+  const [step, setStep] = useState('select'); // 'select' | 'configure' | 'download'
   const [left, setLeft] = useState('0');
   const [bottom, setBottom] = useState('0');
   const [right, setRight] = useState('0');
@@ -49,7 +50,8 @@ export default function CropTool() {
       if (resultUrl) URL.revokeObjectURL(resultUrl);
       const url = URL.createObjectURL(blob);
       setResultUrl(url);
-      setMessage('ประมวลผลเสร็จแล้ว แสดงตัวอย่างก่อนดาวน์โหลด');
+      setStep('download');
+      setMessage('ครอบตัดหน้า PDF เรียบร้อยแล้ว');
     } catch (err) {
       setMessage(`เกิดข้อผิดพลาด: ${err.message}`);
     } finally {
@@ -60,10 +62,31 @@ export default function CropTool() {
   return (
     <div className="panel">
       <p className="merge-step">
-        {step === 'select' ? '01 / เลือกเอกสาร' : '02 / ตั้งค่าและดูตัวอย่าง'}
+        {step === 'select'
+          ? '01 / เลือกเอกสาร'
+          : step === 'configure'
+          ? '02 / กำหนดระยะตัดขอบ'
+          : '03 / เอกสารพร้อมดาวน์โหลด'}
       </p>
 
-      {step === 'select' ? (
+      {/* DEDICATED DOWNLOAD SCREEN */}
+      {step === 'download' && resultUrl ? (
+        <DownloadScreen
+          downloadUrl={resultUrl}
+          filename={`cropped_${file?.name || 'document.pdf'}`}
+          title="ครอบตัด PDF สำเร็จแล้ว!"
+          subtitle={`ตัดขอบตามระยะที่กำหนด (ซ้าย: ${left}pt, ขวา: ${right}pt, บน: ${top}pt, ล่าง: ${bottom}pt) เรียบร้อย`}
+          onBack={() => setStep('configure')}
+          backLabel="← กลับไปปรับแต่ง"
+          onReset={() => {
+            setStep('select');
+            setFile(null);
+            setResultUrl('');
+            setMessage('');
+          }}
+          resetLabel="ครอบตัดไฟล์ใหม่"
+        />
+      ) : step === 'select' ? (
         <div className="tool-controls">
           <DropZone
             onFilesSelected={handleFile}
@@ -136,16 +159,15 @@ export default function CropTool() {
               id="run"
               disabled={processing}
             >
-              {processing ? 'กำลังประมวลผล…' : resultUrl ? 'ประมวลผลอีกครั้ง' : 'เริ่มประมวลผล'}
+              {processing ? 'กำลังประมวลผล…' : 'เริ่มประมวลผล'}
             </button>
 
-            {message && <p className={`message ${resultUrl ? 'success' : ''}`}>{message}</p>}
+            {message && <p className="message">{message}</p>}
           </div>
 
           <PdfPreview
-            previewUrl={resultUrl || sourcePreviewUrl}
-            downloadFilename={resultUrl ? 'cropped.pdf' : null}
-            metaText={resultUrl ? 'ผลลัพธ์พร้อมตรวจสอบ' : 'ตัวอย่างไฟล์ต้นฉบับ'}
+            previewUrl={sourcePreviewUrl}
+            metaText="ตัวอย่างไฟล์ต้นฉบับ"
           />
         </form>
       )}

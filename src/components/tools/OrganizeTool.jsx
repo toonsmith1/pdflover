@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import DropZone from '../common/DropZone';
 import PdfPreview from '../common/PdfPreview';
+import DownloadScreen from '../common/DownloadScreen';
 
 export default function OrganizeTool() {
   const [file, setFile] = useState(null);
@@ -10,6 +11,7 @@ export default function OrganizeTool() {
   const [processing, setProcessing] = useState(false);
   const [message, setMessage] = useState('');
   const [resultUrl, setResultUrl] = useState('');
+  const [step, setStep] = useState('select'); // 'select' | 'organize' | 'download'
 
   const handleFile = async (files) => {
     if (!files.length) return;
@@ -28,6 +30,7 @@ export default function OrganizeTool() {
       const data = await res.json();
       const count = data.pages;
       setOrder(Array.from({ length: count }, (_, i) => i + 1));
+      setStep('organize');
     } catch (err) {
       setMessage(err.message);
     } finally {
@@ -63,7 +66,8 @@ export default function OrganizeTool() {
       if (resultUrl) URL.revokeObjectURL(resultUrl);
       const url = URL.createObjectURL(blob);
       setResultUrl(url);
-      setMessage('แสดงตัวอย่างลำดับใหม่แล้ว ตรวจสอบก่อนดาวน์โหลดได้');
+      setStep('download');
+      setMessage('จัดลำดับหน้า PDF เรียบร้อยแล้ว');
     } catch (err) {
       setMessage(`เกิดข้อผิดพลาด: ${err.message}`);
     } finally {
@@ -73,62 +77,82 @@ export default function OrganizeTool() {
 
   return (
     <div className="panel">
-      <form onSubmit={handleOrganize} className="tool-layout wide">
-        <div className="tool-controls">
-          <DropZone
-            onFilesSelected={handleFile}
-            multiple={false}
-            label={file ? `${file.name} ${order.length ? `(${order.length} หน้า)` : ''}` : 'ยังไม่ได้เลือกไฟล์'}
-          />
+      <p className="merge-step">
+        {step === 'select'
+          ? '01 / เลือกเอกสาร'
+          : step === 'organize'
+          ? '02 / ลากจัดเรียงลำดับหน้า'
+          : '03 / เอกสารพร้อมดาวน์โหลด'}
+      </p>
 
-          {loadingPages && <p className="message">กำลังอ่านข้อมูลหน้า PDF…</p>}
+      {/* DEDICATED DOWNLOAD SCREEN */}
+      {step === 'download' && resultUrl ? (
+        <DownloadScreen
+          downloadUrl={resultUrl}
+          filename={`organized_${file?.name || 'document.pdf'}`}
+          title="จัดลำดับหน้า PDF สำเร็จแล้ว!"
+          subtitle={`จัดเรียงหน้าเอกสารทั้งหมด ${order.length} หน้าตามลำดับใหม่เรียบร้อย`}
+          onBack={() => setStep('organize')}
+          backLabel="← กลับไปจัดเรียงใหม่"
+          onReset={() => {
+            setStep('select');
+            setFile(null);
+            setOrder([]);
+            setResultUrl('');
+            setMessage('');
+          }}
+          resetLabel="จัดเอกสารใหม่"
+        />
+      ) : (
+        <form onSubmit={handleOrganize} className="tool-layout wide">
+          <div className="tool-controls">
+            <DropZone
+              onFilesSelected={handleFile}
+              multiple={false}
+              label={file ? `${file.name} ${order.length ? `(${order.length} หน้า)` : ''}` : 'ยังไม่ได้เลือกไฟล์'}
+            />
 
-          {order.length > 0 && (
-            <div className="page-order-grid">
-              <strong>ลากหน้าเพื่อจัดลำดับ</strong>
-              <div className="page-cards">
-                {order.map((page, index) => (
-                  <div
-                    key={page}
-                    className={`page-card ${draggedIndex === index ? 'dragging' : ''}`}
-                    draggable
-                    onDragStart={() => setDraggedIndex(index)}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      handleDropPage(index);
-                    }}
-                    onDragEnd={() => setDraggedIndex(null)}
-                  >
-                    <span className="page-number">{page}</span>
-                    <b>หน้า {page}</b>
-                  </div>
-                ))}
+            {loadingPages && <p className="message">กำลังอ่านข้อมูลหน้า PDF…</p>}
+
+            {order.length > 0 && (
+              <div className="page-order-grid">
+                <strong>ลากหน้าเพื่อจัดลำดับ</strong>
+                <div className="page-cards">
+                  {order.map((page, index) => (
+                    <div
+                      key={page}
+                      className={`page-card ${draggedIndex === index ? 'dragging' : ''}`}
+                      draggable
+                      onDragStart={() => setDraggedIndex(index)}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        handleDropPage(index);
+                      }}
+                      onDragEnd={() => setDraggedIndex(null)}
+                    >
+                      <span className="page-number">{page}</span>
+                      <b>หน้า {page}</b>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {order.length > 0 && (
-            <button
-              type="submit"
-              className="primary"
-              disabled={processing}
-            >
-              {processing ? 'กำลังสร้างตัวอย่าง…' : 'สร้างตัวอย่างลำดับใหม่'}
-            </button>
-          )}
+            {order.length > 0 && (
+              <button
+                type="submit"
+                className="primary"
+                disabled={processing}
+              >
+                {processing ? 'กำลังจัดลำดับหน้า…' : 'บันทึกลำดับหน้าใหม่'}
+              </button>
+            )}
 
-          {message && <p className={`message ${resultUrl ? 'success' : ''}`}>{message}</p>}
-        </div>
-
-        {resultUrl && (
-          <PdfPreview
-            previewUrl={resultUrl}
-            downloadFilename="organized.pdf"
-            metaText={`${order.length} หน้า · ตัวอย่างลำดับใหม่`}
-          />
-        )}
-      </form>
+            {message && <p className="message">{message}</p>}
+          </div>
+        </form>
+      )}
     </div>
   );
 }

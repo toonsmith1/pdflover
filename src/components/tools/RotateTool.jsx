@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import DropZone from '../common/DropZone';
 import PdfPreview from '../common/PdfPreview';
+import DownloadScreen from '../common/DownloadScreen';
 
 export default function RotateTool() {
   const [file, setFile] = useState(null);
-  const [step, setStep] = useState('select');
+  const [step, setStep] = useState('select'); // 'select' | 'configure' | 'download'
   const [degrees, setDegrees] = useState('90');
   const [processing, setProcessing] = useState(false);
   const [message, setMessage] = useState('');
@@ -43,7 +44,8 @@ export default function RotateTool() {
       if (resultUrl) URL.revokeObjectURL(resultUrl);
       const url = URL.createObjectURL(blob);
       setResultUrl(url);
-      setMessage('ประมวลผลเสร็จแล้ว แสดงตัวอย่างก่อนดาวน์โหลด');
+      setStep('download');
+      setMessage('หมุนหน้า PDF เรียบร้อยแล้ว');
     } catch (err) {
       setMessage(`เกิดข้อผิดพลาด: ${err.message}`);
     } finally {
@@ -54,10 +56,31 @@ export default function RotateTool() {
   return (
     <div className="panel">
       <p className="merge-step">
-        {step === 'select' ? '01 / เลือกเอกสาร' : '02 / ตั้งค่าและดูตัวอย่าง'}
+        {step === 'select'
+          ? '01 / เลือกเอกสาร'
+          : step === 'configure'
+          ? '02 / ตั้งค่าองศาการหมุน'
+          : '03 / เอกสารพร้อมดาวน์โหลด'}
       </p>
 
-      {step === 'select' ? (
+      {/* DEDICATED DOWNLOAD SCREEN */}
+      {step === 'download' && resultUrl ? (
+        <DownloadScreen
+          downloadUrl={resultUrl}
+          filename={`rotated_${file?.name || 'document.pdf'}`}
+          title="หมุนหน้า PDF สำเร็จแล้ว!"
+          subtitle={`หมุนเอกสารทั้งหมด ${degrees}° เรียบร้อย พร้อมดาวน์โหลด`}
+          onBack={() => setStep('configure')}
+          backLabel="← กลับไปปรับแต่ง"
+          onReset={() => {
+            setStep('select');
+            setFile(null);
+            setResultUrl('');
+            setMessage('');
+          }}
+          resetLabel="หมุนไฟล์ใหม่"
+        />
+      ) : step === 'select' ? (
         <div className="tool-controls">
           <DropZone
             onFilesSelected={handleFile}
@@ -85,15 +108,15 @@ export default function RotateTool() {
             </button>
 
             <label id="degrees-field">
-              <span>องศา</span>
+              <span>องศาการหมุน</span>
               <select
                 id="degrees"
                 value={degrees}
                 onChange={(e) => setDegrees(e.target.value)}
               >
-                <option value="90">90°</option>
-                <option value="180">180°</option>
-                <option value="270">270°</option>
+                <option value="90">หมุนตามเข็ม 90°</option>
+                <option value="180">กลับหัว 180°</option>
+                <option value="270">หมุนทวนเข็ม 270°</option>
               </select>
             </label>
 
@@ -103,16 +126,15 @@ export default function RotateTool() {
               id="run"
               disabled={processing}
             >
-              {processing ? 'กำลังประมวลผล…' : resultUrl ? 'ประมวลผลอีกครั้ง' : 'เริ่มประมวลผล'}
+              {processing ? 'กำลังประมวลผล…' : 'เริ่มประมวลผล'}
             </button>
 
-            {message && <p className={`message ${resultUrl ? 'success' : ''}`}>{message}</p>}
+            {message && <p className="message">{message}</p>}
           </div>
 
           <PdfPreview
-            previewUrl={resultUrl || sourcePreviewUrl}
-            downloadFilename={resultUrl ? 'rotated.pdf' : null}
-            metaText={resultUrl ? 'ผลลัพธ์พร้อมตรวจสอบ' : 'ตัวอย่างไฟล์ต้นฉบับ'}
+            previewUrl={sourcePreviewUrl}
+            metaText="ตัวอย่างไฟล์ต้นฉบับ"
           />
         </form>
       )}

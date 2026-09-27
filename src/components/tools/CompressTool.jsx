@@ -7,6 +7,7 @@ export default function CompressTool() {
   const [file, setFile] = useState(null);
   const [step, setStep] = useState('select'); // 'select' | 'configure' | 'download'
   const [quality, setQuality] = useState('balanced');
+  const [fileSizes, setFileSizes] = useState({ original: 0, compressed: 0 });
   const [processing, setProcessing] = useState(false);
   const [message, setMessage] = useState('');
   const [resultUrl, setResultUrl] = useState('');
@@ -15,6 +16,7 @@ export default function CompressTool() {
   const handleFile = (files) => {
     if (files.length > 0) {
       setFile(files[0]);
+      setFileSizes({ original: files[0].size, compressed: 0 });
       if (sourcePreviewUrl) URL.revokeObjectURL(sourcePreviewUrl);
       if (resultUrl) URL.revokeObjectURL(resultUrl);
       setSourcePreviewUrl(URL.createObjectURL(files[0]));
@@ -41,6 +43,7 @@ export default function CompressTool() {
       const res = await fetch('/api/compress', { method: 'POST', body });
       if (!res.ok) throw new Error(await res.text());
       const blob = await res.blob();
+      setFileSizes((prev) => ({ ...prev, compressed: blob.size }));
       if (resultUrl) URL.revokeObjectURL(resultUrl);
       const url = URL.createObjectURL(blob);
       setResultUrl(url);
@@ -53,6 +56,16 @@ export default function CompressTool() {
     }
   };
 
+  const savedPct =
+    fileSizes.original && fileSizes.compressed
+      ? Math.max(0, Math.round((1 - fileSizes.compressed / fileSizes.original) * 100))
+      : null;
+
+  const subtitleText =
+    savedPct !== null && fileSizes.original > 0
+      ? `ขนาดไฟล์ลดลงจาก ${(fileSizes.original / 1048576).toFixed(2)} MB เหลือ ${(fileSizes.compressed / 1048576).toFixed(2)} MB (ประหยัดพื้นที่ได้ ${savedPct}%)`
+      : 'ไฟล์ถูกบีบอัดให้มีขนาดเล็กลงอย่างมีประสิทธิภาพ พร้อมดาวน์โหลดทันที';
+
   return (
     <div className="panel">
       <p className="merge-step">
@@ -60,15 +73,16 @@ export default function CompressTool() {
           ? '01 / เลือกเอกสาร'
           : step === 'configure'
           ? '02 / ตั้งค่าระดับการบีบอัด'
-          : '03 / ดาวน์โหลดเอกสาร'}
+          : '03 / เอกสารพร้อมดาวน์โหลด'}
       </p>
 
+      {/* DEDICATED STAGE: Download Screen with Ad & Stats */}
       {step === 'download' && resultUrl ? (
         <DownloadScreen
           downloadUrl={resultUrl}
           filename={`compressed_${file?.name || 'document.pdf'}`}
           title="ลดขนาดไฟล์ PDF สำเร็จแล้ว!"
-          subtitle="ไฟล์ถูกบีบอัดให้มีขนาดเล็กลงอย่างมีประสิทธิภาพ พร้อมดาวน์โหลด"
+          subtitle={subtitleText}
           onBack={() => setStep('configure')}
           backLabel="← กลับไปปรับแต่ง"
           onReset={() => {

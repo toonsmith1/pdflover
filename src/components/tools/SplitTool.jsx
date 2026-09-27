@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import DropZone from '../common/DropZone';
 import PdfPreview from '../common/PdfPreview';
+import DownloadScreen from '../common/DownloadScreen';
 
 export default function SplitTool() {
   const [file, setFile] = useState(null);
-  const [step, setStep] = useState('select');
+  const [step, setStep] = useState('select'); // 'select' | 'configure' | 'download'
   const [pages, setPages] = useState('1');
   const [processing, setProcessing] = useState(false);
   const [message, setMessage] = useState('');
@@ -48,7 +49,8 @@ export default function SplitTool() {
       if (resultUrl) URL.revokeObjectURL(resultUrl);
       const url = URL.createObjectURL(blob);
       setResultUrl(url);
-      setMessage('ประมวลผลเสร็จแล้ว แสดงตัวอย่างก่อนดาวน์โหลด');
+      setStep('download');
+      setMessage('แยกหน้า PDF เรียบร้อยแล้ว');
     } catch (err) {
       setMessage(`เกิดข้อผิดพลาด: ${err.message}`);
     } finally {
@@ -59,10 +61,31 @@ export default function SplitTool() {
   return (
     <div className="panel">
       <p className="merge-step">
-        {step === 'select' ? '01 / เลือกเอกสาร' : '02 / ตั้งค่าและดูตัวอย่าง'}
+        {step === 'select'
+          ? '01 / เลือกเอกสาร'
+          : step === 'configure'
+          ? '02 / กำหนดหน้าที่ต้องการแยก'
+          : '03 / เอกสารพร้อมดาวน์โหลด'}
       </p>
 
-      {step === 'select' ? (
+      {/* DEDICATED DOWNLOAD SCREEN */}
+      {step === 'download' && resultUrl ? (
+        <DownloadScreen
+          downloadUrl={resultUrl}
+          filename={`split_${file?.name || 'document.pdf'}`}
+          title="แยกหน้า PDF สำเร็จแล้ว!"
+          subtitle={`แยกหน้าที่ระบุ (${pages}) ออกมาเป็นไฟล์ใหม่เรียบร้อย พร้อมดาวน์โหลด`}
+          onBack={() => setStep('configure')}
+          backLabel="← กลับไปตั้งค่าหน้า"
+          onReset={() => {
+            setStep('select');
+            setFile(null);
+            setResultUrl('');
+            setMessage('');
+          }}
+          resetLabel="แยกไฟล์ใหม่"
+        />
+      ) : step === 'select' ? (
         <div className="tool-controls">
           <DropZone
             onFilesSelected={handleFile}
@@ -106,16 +129,15 @@ export default function SplitTool() {
               id="run"
               disabled={processing}
             >
-              {processing ? 'กำลังประมวลผล…' : resultUrl ? 'ประมวลผลอีกครั้ง' : 'เริ่มประมวลผล'}
+              {processing ? 'กำลังประมวลผล…' : 'เริ่มประมวลผล'}
             </button>
 
-            {message && <p className={`message ${resultUrl ? 'success' : ''}`}>{message}</p>}
+            {message && <p className="message">{message}</p>}
           </div>
 
           <PdfPreview
-            previewUrl={resultUrl || sourcePreviewUrl}
-            downloadFilename={resultUrl ? 'split.pdf' : null}
-            metaText={resultUrl ? 'ผลลัพธ์พร้อมตรวจสอบ' : 'ตัวอย่างไฟล์ต้นฉบับ'}
+            previewUrl={sourcePreviewUrl}
+            metaText="ตัวอย่างไฟล์ต้นฉบับ"
           />
         </form>
       )}
