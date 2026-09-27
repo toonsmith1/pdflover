@@ -10,10 +10,14 @@ else $('#crop-field').remove();
 if (name === 'text') {
   $('#text-field').hidden = false;
   const pad = $('#text-position-pad'), dot = $('#text-position-dot'); pad.hidden = false;
+  const textOverlay = $('#text-overlay');
+  const updateTextOverlay = () => { textOverlay.textContent = $('#text-value').value || 'ข้อความตัวอย่าง'; textOverlay.style.color = $('#text-color').value; textOverlay.style.fontSize = `${Math.max(8, Number($('#text-size').value) || 16)}px`; textOverlay.style.fontFamily = $('#text-font').selectedOptions[0].text; };
+  ['text-value','text-color','text-size','text-font'].forEach(id => $('#'+id).addEventListener('input', updateTextOverlay));
+  $('#text-font').addEventListener('change', updateTextOverlay); updateTextOverlay();
   let moving = false;
   dot.addEventListener('pointerdown', event => { moving = true; dot.setPointerCapture(event.pointerId); });
   dot.addEventListener('pointerup', () => { moving = false; });
-  dot.addEventListener('pointermove', event => { if (!moving) return; const rect = pad.getBoundingClientRect(); const x = Math.max(0, Math.min(540, (event.clientX - rect.left) / rect.width * 540)); const y = Math.max(0, Math.min(720, (1 - (event.clientY - rect.top) / rect.height) * 720)); dot.style.left = `${x / 540 * 100}%`; dot.style.top = `${(1 - y / 720) * 100}%`; $('#text-x').value = Math.round(x); $('#text-y').value = Math.round(y); });
+  dot.addEventListener('pointermove', event => { if (!moving) return; const image = $('#text-page-image'), rect = image.getBoundingClientRect(); const px = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)); const py = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height)); dot.style.left = `${px * 100}%`; dot.style.top = `${py * 100}%`; textOverlay.style.left = `${px * 100}%`; textOverlay.style.top = `${py * 100}%`; $('#text-x').value = Math.round(px * Number(image.dataset.width || 540)); $('#text-y').value = Math.round((1 - py) * Number(image.dataset.height || 720)); });
 } else { $('#text-field').remove(); $('#text-position-pad').remove(); }
 $('#files').multiple = name === 'merge' || name === 'image-pdf';
 const expandButton = $('#preview-expand');

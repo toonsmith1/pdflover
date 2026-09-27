@@ -11,8 +11,8 @@
       if (!response.ok) throw new Error('สร้างภาพตัวอย่างไม่ได้');
       if (imageUrl) URL.revokeObjectURL(imageUrl);
       imageUrl = URL.createObjectURL(await response.blob());
-      pad.style.backgroundImage = `url(${imageUrl})`;
-      pad.style.backgroundSize = 'contain'; pad.style.backgroundRepeat = 'no-repeat'; pad.style.backgroundPosition = 'center';
+      const image = document.querySelector('#text-page-image'); image.src = imageUrl;
+      image.onload = () => { image.dataset.width = image.naturalWidth; image.dataset.height = image.naturalHeight; };
       pad.classList.add('has-page-image');
     } catch (error) { document.querySelector('#message').textContent = error.message; }
   });
