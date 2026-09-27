@@ -145,6 +145,40 @@ main {
   color: var(--muted-foreground);
   border: 1px solid var(--border);
   font-weight: 400;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+  transition: all 0.16s ease;
+}
+
+.app-version-badge.has-update {
+  background: #edf5eb;
+  color: #386737;
+  border-color: #b5d5b1;
+  font-weight: 500;
+  box-shadow: 0 1px 4px rgba(56, 103, 55, 0.12);
+}
+
+.app-version-badge.has-update:hover {
+  background: #e2efe0;
+  border-color: #9cbfa8;
+  transform: translateY(-1px);
+}
+
+.update-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #448043;
+  box-shadow: 0 0 0 2px rgba(68, 128, 67, 0.25);
+  animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+  0% { box-shadow: 0 0 0 0 rgba(68, 128, 67, 0.5); }
+  70% { box-shadow: 0 0 0 5px rgba(68, 128, 67, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(68, 128, 67, 0); }
 }
 
 .header-nav-crumb {
