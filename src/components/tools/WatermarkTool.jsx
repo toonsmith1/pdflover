@@ -71,14 +71,21 @@ export default function WatermarkTool() {
   const [message, setMessage] = useState('');
   const [resultUrl, setResultUrl] = useState('');
 
+  const urlsRef = useRef(new Set());
+
   // Cleanup object URLs on unmount
   useEffect(() => {
     return () => {
-      if (pageImageUrl) URL.revokeObjectURL(pageImageUrl);
-      if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
-      if (resultUrl) URL.revokeObjectURL(resultUrl);
+      urlsRef.current.forEach((u) => {
+        try {
+          URL.revokeObjectURL(u);
+        } catch {
+          // ignore
+        }
+      });
+      urlsRef.current.clear();
     };
-  }, [pageImageUrl, imagePreviewUrl, resultUrl]);
+  }, []);
 
   const handleFile = async (files) => {
     if (!files.length) return;
@@ -105,6 +112,7 @@ export default function WatermarkTool() {
         const blob = await previewRes.blob();
         if (pageImageUrl) URL.revokeObjectURL(pageImageUrl);
         const url = URL.createObjectURL(blob);
+        urlsRef.current.add(url);
         setPageImageUrl(url);
       }
       setStep('configure');
@@ -119,8 +127,9 @@ export default function WatermarkTool() {
     const f = e.target.files?.[0];
     if (f) {
       setImageFile(f);
-      if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
-      setImagePreviewUrl(URL.createObjectURL(f));
+      const url = URL.createObjectURL(f);
+      urlsRef.current.add(url);
+      setImagePreviewUrl(url);
     }
   };
 
@@ -164,8 +173,8 @@ export default function WatermarkTool() {
         throw new Error(errorText || 'ไม่สามารถใส่ลายน้ำได้');
       }
       const blob = await res.blob();
-      if (resultUrl) URL.revokeObjectURL(resultUrl);
       const url = URL.createObjectURL(blob);
+      urlsRef.current.add(url);
       setResultUrl(url);
       setStep('download');
       setMessage('ใส่ลายน้ำลงใน PDF เรียบร้อยแล้ว');

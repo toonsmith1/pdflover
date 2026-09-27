@@ -117,6 +117,8 @@ export default function NoteTool() {
   const currentStrokeRef = useRef(null);
   const containerRef = useRef(null);
   const historyStackRef = useRef({});
+  const urlsRef = useRef(new Set());
+  const pageImagesRef = useRef({});
 
   const saveSnapshot = useCallback(() => {
     const pageData = pageAnnotations[currentPage] || { strokes: [], notes: [] };
@@ -129,19 +131,23 @@ export default function NoteTool() {
     }
   }, [pageAnnotations, currentPage]);
 
-  // Cleanup object URLs on unmount
+  // Cleanup object URLs ONLY on unmount
   useEffect(() => {
     return () => {
-      Object.values(pageImages).forEach((url) => {
-        if (url) URL.revokeObjectURL(url);
+      urlsRef.current.forEach((url) => {
+        try {
+          URL.revokeObjectURL(url);
+        } catch {
+          // ignore
+        }
       });
-      if (resultUrl) URL.revokeObjectURL(resultUrl);
+      urlsRef.current.clear();
     };
-  }, [pageImages, resultUrl]);
+  }, []);
 
   // Load a page image
-  const loadPageImage = useCallback(async (selectedFile, pageNum) => {
-    if (pageImages[pageNum]) return;
+  const loadPageImage = useCallback(async (selectedFile, pageNum, force = false) => {
+    if (!force && pageImagesRef.current[pageNum]) return;
     setLoadingPage(true);
     const body = new FormData();
     body.append('file', selectedFile);
@@ -151,18 +157,32 @@ export default function NoteTool() {
       if (!res.ok) throw new Error('ไม่สามารถโหลดภาพหน้านี้ได้');
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
+      urlsRef.current.add(url);
+      pageImagesRef.current[pageNum] = url;
       setPageImages((prev) => ({ ...prev, [pageNum]: url }));
     } catch {
       // Ignore preview errors
     } finally {
       setLoadingPage(false);
     }
-  }, [pageImages]);
+  }, []);
 
   // Handle Initial File Selection
   const handleFile = async (files) => {
     if (!files.length) return;
     const selected = files[0];
+
+    urlsRef.current.forEach((url) => {
+      try {
+        URL.revokeObjectURL(url);
+      } catch {
+        // ignore
+      }
+    });
+    urlsRef.current.clear();
+    pageImagesRef.current = {};
+    setPageImages({});
+
     setFile(selected);
     setMessage('');
     setCurrentPage(1);
@@ -644,9 +664,19 @@ export default function NoteTool() {
           onBack={() => setStep('annotate')}
           backLabel="← กลับไปแก้ไขเพิ่มเติม"
           onReset={() => {
+            urlsRef.current.forEach((u) => {
+              try {
+                URL.revokeObjectURL(u);
+              } catch {
+                // ignore
+              }
+            });
+            urlsRef.current.clear();
+            pageImagesRef.current = {};
             setStep('select');
             setFile(null);
             setPageAnnotations({});
+            setPageImages({});
             setResultUrl('');
             setMessage('');
           }}
@@ -950,10 +980,16 @@ export default function NoteTool() {
               {/* 1. Underlying Rendered PDF Page Image */}
               {pageImages[currentPage] ? (
                 <img
+                  key={`page-${currentPage}-${pageImages[currentPage]}`}
                   src={pageImages[currentPage]}
                   alt={`หน้า ${currentPage}`}
                   className="note-base-img"
                   draggable={false}
+                  onError={() => {
+                    if (file) {
+                      loadPageImage(file, currentPage, true);
+                    }
+                  }}
                 />
               ) : (
                 <div className="note-loading-sheet">

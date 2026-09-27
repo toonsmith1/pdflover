@@ -4389,6 +4389,8 @@ footer {
   position: relative;
   width: 100%;
   max-width: 720px;
+  min-height: 520px;
+  aspect-ratio: 1 / 1.4142;
   background: #ffffff;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
   border: 1px solid #d0c8bd;
