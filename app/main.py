@@ -13,6 +13,7 @@ from pypdf import PdfReader
 
 from .config import get_settings
 from .pdf_service import (
+    add_page_numbers_pdf,
     add_text_pdf,
     compress_pdf,
     crop_pdf,
@@ -177,6 +178,37 @@ async def add_text(file: Annotated[UploadFile, File(...)], items: Annotated[str,
     except (ValueError, TypeError, json.JSONDecodeError) as exc:
         raise HTTPException(400, str(exc)) from exc
     return Response(result, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="text-added.pdf"'})
+
+
+@app.post("/api/pagenum")
+async def pagenum(
+    file: Annotated[UploadFile, File(...)],
+    position: Annotated[str, Form()] = "bottom-center",
+    page_mode: Annotated[str, Form()] = "all",
+    skip_first: Annotated[bool, Form()] = False,
+    start_number: Annotated[int, Form()] = 1,
+    format_style: Annotated[str, Form()] = "number",
+    font_size: Annotated[float, Form()] = 11.0,
+    font_name: Annotated[str, Form()] = "loma",
+    color: Annotated[str, Form()] = "#444444",
+) -> Response:
+    data = await file.read()
+    check_file(file, data)
+    try:
+        result = add_page_numbers_pdf(
+            data,
+            position=position,
+            page_mode=page_mode,
+            skip_first=skip_first,
+            start_number=start_number,
+            format_style=format_style,
+            font_size=font_size,
+            font_name=font_name,
+            color=color,
+        )
+    except Exception as exc:
+        raise HTTPException(400, f"Could not add page numbers: {exc}") from exc
+    return Response(result, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="numbered.pdf"'})
 
 
 @app.post("/api/render-preview")

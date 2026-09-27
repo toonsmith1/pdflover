@@ -156,3 +156,95 @@ def compress_pdf(data: bytes, quality: str = "balanced") -> bytes:
         linearize=quality == "low",
     )
     return output.getvalue()
+
+
+def add_page_numbers_pdf(
+    data: bytes,
+    position: str = "bottom-center",
+    page_mode: str = "all",
+    skip_first: bool = False,
+    start_number: int = 1,
+    format_style: str = "number",
+    font_name: str = "loma",
+    font_size: float = 11.0,
+    color: str = "#444444",
+    margin: float = 36.0,
+) -> bytes:
+    reader = PdfReader(BytesIO(data))
+    writer = PdfWriter()
+    total_pages = len(reader.pages)
+    if total_pages == 0:
+        raise ValueError("PDF document is empty")
+
+    registered_font = f"PDFLover-{font_name}"
+    if registered_font not in pdfmetrics.getRegisteredFontNames():
+        available = [f for f in pdfmetrics.getRegisteredFontNames() if f.startswith("PDFLover-")]
+        registered_font = available[0] if available else "Helvetica"
+
+    hex_clean = color.lstrip("#")
+    if len(hex_clean) == 6:
+        rgb = tuple(int(hex_clean[i:i + 2], 16) / 255.0 for i in (0, 2, 4))
+    else:
+        rgb = (0.25, 0.25, 0.25)
+
+    vert_pos, horiz_pos = ("bottom", "center")
+    parts = position.split("-")
+    if len(parts) == 2:
+        vert_pos, horiz_pos = parts[0], parts[1]
+
+    for idx, page in enumerate(reader.pages):
+        page_num_1based = idx + 1
+
+        if idx == 0 and skip_first:
+            writer.add_page(page)
+            continue
+
+        is_odd = page_num_1based % 2 != 0
+        if page_mode == "odd" and not is_odd:
+            writer.add_page(page)
+            continue
+        if page_mode == "even" and is_odd:
+            writer.add_page(page)
+            continue
+
+        current_horiz = horiz_pos
+        if page_mode == "alternate":
+            current_horiz = "right" if is_odd else "left"
+
+        display_num = start_number + idx - (1 if skip_first else 0)
+        display_total = total_pages - (1 if skip_first else 0)
+
+        if format_style == "prefix":
+            text = f"หน้า {display_num}"
+        elif format_style == "fraction":
+            text = f"{display_num} / {display_total}"
+        elif format_style == "full":
+            text = f"หน้า {display_num} จาก {display_total} หน้า"
+        else:
+            text = str(display_num)
+
+        page_w = float(page.mediabox.width)
+        page_h = float(page.mediabox.height)
+
+        overlay = BytesIO()
+        layer = canvas.Canvas(overlay, pagesize=(page_w, page_h))
+        layer.setFont(registered_font, font_size)
+        layer.setFillColorRGB(*rgb)
+
+        y = margin if vert_pos == "bottom" else (page_h - margin)
+
+        if current_horiz == "left":
+            layer.drawString(margin, y, text)
+        elif current_horiz == "right":
+            layer.drawRightString(page_w - margin, y, text)
+        else:
+            layer.drawCentredString(page_w / 2.0, y, text)
+
+        layer.save()
+        overlay.seek(0)
+        page.merge_page(PdfReader(overlay).pages[0])
+        writer.add_page(page)
+
+    output = BytesIO()
+    writer.write(output)
+    return output.getvalue()

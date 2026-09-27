@@ -8,6 +8,7 @@ import OrganizeTool from './tools/OrganizeTool';
 import RotateTool from './tools/RotateTool';
 import CropTool from './tools/CropTool';
 import TextTool from './tools/TextTool';
+import PageNumTool from './tools/PageNumTool';
 import GenericTool from './tools/GenericTool';
 
 export default function ToolPage() {
@@ -48,6 +49,8 @@ export default function ToolPage() {
         return <CropTool />;
       case 'text':
         return <TextTool />;
+      case 'pagenum':
+        return <PageNumTool />;
       default:
         return <GenericTool toolId={toolId} />;
     }

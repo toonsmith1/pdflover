@@ -130,6 +130,23 @@ def test_crop():
     assert res.headers["content-type"] == "application/pdf"
 
 
+def test_pagenum():
+    pdf = make_test_pdf("Page with number")
+    res = client.post(
+        "/api/pagenum",
+        files={"file": ("doc.pdf", pdf, "application/pdf")},
+        data={
+            "position": "bottom-right",
+            "page_mode": "alternate",
+            "format_style": "prefix",
+            "skip_first": "false",
+            "start_number": "1",
+        },
+    )
+    assert res.status_code == 200
+    assert res.headers["content-type"] == "application/pdf"
+
+
 def test_render_preview():
     pdf = make_test_pdf("Preview page")
     res = client.post(
