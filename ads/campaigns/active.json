@@ -4,13 +4,13 @@
       "id": "pdflover-support",
       "enabled": true,
       "placement": "all",
-      "badge": "สนับสนุน PDF Lover",
-      "tag": "LOCAL-FIRST • ปลอดภัย",
-      "title": "ชอบที่เอกสารไม่ออกนอกเครื่อง?",
-      "description": "ร่วมสนับสนุนให้เราพัฒนาเครื่องมือ PDF ปลอดภัยต่อไป",
+      "badge": "VPN ฟรีแนะนำ",
+      "tag": "ปกป้องความเป็นส่วนตัวออนไลน์",
+      "title": "ใช้ VPN ฟรีเพื่อความเป็นส่วนตัว",
+      "description": "เข้ารหัสการเชื่อมต่อและช่วยปกป้องข้อมูลขณะใช้งานอินเทอร์เน็ต",
       "image": "",
-      "button_text": "สนับสนุนผู้พัฒนา",
-      "target_url": "https://buymeacoffee.com"
+      "button_text": "ดู VPN ฟรี",
+      "target_url": "https://protonvpn.com/free-vpn"
     }
   ]
 }
