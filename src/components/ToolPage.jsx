@@ -8,6 +8,7 @@ import OrganizeTool from './tools/OrganizeTool';
 import RotateTool from './tools/RotateTool';
 import CropTool from './tools/CropTool';
 import TextTool from './tools/TextTool';
+import NoteTool from './tools/NoteTool';
 import PageNumTool from './tools/PageNumTool';
 import WatermarkTool from './tools/WatermarkTool';
 import GenericTool from './tools/GenericTool';
@@ -50,6 +51,8 @@ export default function ToolPage() {
         return <CropTool />;
       case 'text':
         return <TextTool />;
+      case 'note':
+        return <NoteTool />;
       case 'pagenum':
         return <PageNumTool />;
       case 'watermark':

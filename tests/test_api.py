@@ -175,6 +175,19 @@ def test_watermark():
     assert res.headers["content-type"] == "application/pdf"
 
 
+def test_note():
+    pdf = make_test_pdf("Note test page")
+    # small dummy 1x1 png base64
+    dummy_b64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+    res = client.post(
+        "/api/note",
+        files={"file": ("doc.pdf", pdf, "application/pdf")},
+        data={"overlays": json.dumps({"1": dummy_b64})},
+    )
+    assert res.status_code == 200
+    assert res.headers["content-type"] == "application/pdf"
+
+
 def test_render_preview():
     pdf = make_test_pdf("Preview page")
     res = client.post(

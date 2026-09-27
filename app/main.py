@@ -13,6 +13,7 @@ from pypdf import PdfReader
 
 from .config import get_settings
 from .pdf_service import (
+    add_notes_pdf,
     add_page_numbers_pdf,
     add_text_pdf,
     add_watermark_pdf,
@@ -263,16 +264,34 @@ async def watermark(
 
 
 @app.post("/api/render-preview")
-async def render_preview(file: Annotated[UploadFile, File(...)]) -> Response:
+async def render_preview(file: Annotated[UploadFile, File(...)], page: int = 1) -> Response:
     data = await file.read(); check_file(file, data)
     try:
         document = pdfium.PdfDocument(data)
-        bitmap = document[0].render(scale=1.5)
+        page_idx = max(0, min(len(document) - 1, page - 1))
+        bitmap = document[page_idx].render(scale=1.5)
         image = bitmap.to_pil()
         output = BytesIO(); image.save(output, format="PNG")
         return Response(output.getvalue(), media_type="image/png")
     except Exception as exc:
         raise HTTPException(400, f"Could not render PDF preview: {exc}") from exc
+
+
+@app.post("/api/note")
+async def add_notes(
+    file: Annotated[UploadFile, File(...)],
+    overlays: Annotated[str, Form(...)],
+) -> Response:
+    data = await file.read()
+    check_file(file, data)
+    try:
+        parsed_overlays = json.loads(overlays)
+        if not isinstance(parsed_overlays, dict):
+            raise TypeError("overlays must be a json object")
+        result = add_notes_pdf(data, parsed_overlays)
+    except (ValueError, TypeError, json.JSONDecodeError) as exc:
+        raise HTTPException(400, str(exc)) from exc
+    return Response(result, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="annotated.pdf"'})
 
 
 @app.post("/api/compress")
@@ -302,6 +321,7 @@ def tool_page(tool_name: str) -> FileResponse:
         "rotate",
         "crop",
         "text",
+        "note",
         "watermark",
         "pagenum",
         "signature",

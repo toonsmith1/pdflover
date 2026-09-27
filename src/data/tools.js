@@ -6,6 +6,7 @@ export const TOOLS = [
   { category: 'pages', categoryLabel: 'จัดการไฟล์และหน้า', id: 'rotate', name: 'หมุนหน้า', desc: 'ปรับเอกสารให้อ่านถูกทิศ', iconName: 'RotateCw', badge: '' },
   { category: 'pages', categoryLabel: 'จัดการไฟล์และหน้า', id: 'crop', name: 'ครอปหน้า', desc: 'จัดขอบและพื้นที่แสดงผล', iconName: 'Crop', badge: '' },
   { category: 'edit', categoryLabel: 'แก้ไขเอกสาร', id: 'text', name: 'เพิ่มข้อความ', desc: 'เติมคำลงบนเอกสารโดยตรง', iconName: 'Type', badge: 'อัปเกรดใหม่' },
+  { category: 'edit', categoryLabel: 'แก้ไขเอกสาร', id: 'note', name: 'จดโน้ต & ไฮไลต์', desc: 'เขียนทับ ปากกาเน้นข้อความ โน้ต', iconName: 'Highlighter', badge: 'มาใหม่' },
   { category: 'edit', categoryLabel: 'แก้ไขเอกสาร', id: 'watermark', name: 'ใส่ลายน้ำ', desc: 'เพิ่มชื่อหรือสถานะเอกสาร', iconName: 'Stamp', badge: '' },
   { category: 'edit', categoryLabel: 'แก้ไขเอกสาร', id: 'pagenum', name: 'ใส่เลขหน้า', desc: 'เรียงลำดับให้อ้างอิงง่าย', iconName: 'Hash', badge: '' },
   { category: 'edit', categoryLabel: 'แก้ไขเอกสาร', id: 'signature', name: 'เพิ่มรูปลายเซ็น', desc: 'วางลายเซ็นบนหน้ากระดาษ', iconName: 'PenTool', badge: '' },

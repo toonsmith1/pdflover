@@ -1,3 +1,4 @@
+import base64
 import shutil
 import subprocess
 import tempfile
@@ -393,6 +394,55 @@ def add_watermark_pdf(
         overlay.seek(0)
         overlay_page = PdfReader(overlay).pages[0]
         page.merge_page(overlay_page, over=(layer == "over"))
+        writer.add_page(page)
+
+    output = BytesIO()
+    writer.write(output)
+    return output.getvalue()
+
+
+def add_notes_pdf(
+    data: bytes,
+    overlays: dict[int | str, str],
+) -> bytes:
+    """
+    Merge visual note/markup overlays (base64 PNG) onto their corresponding PDF pages.
+    overlays: { "1": "data:image/png;base64,...", "2": ... }
+    """
+    reader = PdfReader(BytesIO(data))
+    writer = PdfWriter()
+
+    parsed_overlays: dict[int, str] = {}
+    if isinstance(overlays, dict):
+        for k, v in overlays.items():
+            try:
+                parsed_overlays[int(k)] = str(v)
+            except (ValueError, TypeError):
+                continue
+
+    for idx, page in enumerate(reader.pages):
+        page_num = idx + 1
+        raw_val = parsed_overlays.get(page_num)
+        if raw_val:
+            if "," in raw_val:
+                raw_val = raw_val.split(",", 1)[1]
+            try:
+                png_bytes = base64.b64decode(raw_val)
+                overlay_io = BytesIO(png_bytes)
+
+                pw = float(page.mediabox.width)
+                ph = float(page.mediabox.height)
+
+                over_pdf_io = BytesIO()
+                cv = canvas.Canvas(over_pdf_io, pagesize=(pw, ph))
+                cv.drawImage(ImageReader(overlay_io), 0, 0, width=pw, height=ph, mask="auto")
+                cv.save()
+
+                over_pdf_io.seek(0)
+                page.merge_page(PdfReader(over_pdf_io).pages[0], over=True)
+            except (ValueError, OSError) as exc:
+                raise ValueError(f"Could not apply note overlay on page {page_num}: {exc}") from exc
+
         writer.add_page(page)
 
     output = BytesIO()
