@@ -66,6 +66,15 @@ def test_split():
     assert res.status_code == 200
     assert res.headers["content-type"] == "application/pdf"
 
+    # Test range splitting (e.g. 1-2)
+    res_range = client.post(
+        "/api/split",
+        files={"file": ("merged.pdf", merged, "application/pdf")},
+        data={"pages": "1-2"},
+    )
+    assert res_range.status_code == 200
+    assert res_range.headers["content-type"] == "application/pdf"
+
 
 def test_organize():
     pdf1 = make_test_pdf("Page 1")

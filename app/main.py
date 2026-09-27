@@ -60,12 +60,30 @@ async def merge(files: Annotated[list[UploadFile], File(...)]) -> Response:
     return Response(result, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="merged.pdf"'})
 
 
+def parse_page_selection(pages_str: str) -> list[int]:
+    selected = []
+    for chunk in pages_str.split(","):
+        chunk = chunk.strip()
+        if not chunk:
+            continue
+        if "-" in chunk:
+            start_str, end_str = chunk.split("-", 1)
+            start, end = int(start_str.strip()), int(end_str.strip())
+            step = 1 if start <= end else -1
+            selected.extend(range(start, end + step, step))
+        else:
+            selected.append(int(chunk))
+    return selected
+
+
 @app.post("/api/split")
 async def split(file: Annotated[UploadFile, File(...)], pages: Annotated[str, Form(...)]) -> Response:
     data = await file.read()
     check_file(file, data)
     try:
-        selected = [int(value.strip()) for value in pages.split(",") if value.strip()]
+        selected = parse_page_selection(pages)
+        if not selected:
+            raise ValueError("No pages specified")
         result = split_pdf(data, selected)
     except (ValueError, TypeError) as exc:
         raise HTTPException(400, f"Invalid pages: {exc}") from exc
