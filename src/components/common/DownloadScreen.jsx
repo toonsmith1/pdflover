@@ -52,7 +52,7 @@ export default function DownloadScreen({
               className="button primary download-main-btn"
             >
               <Download size={18} />
-              <span>ดาวน์โหลด PDF ทันที</span>
+              <span>ดาวน์โหลดไฟล์ทันที</span>
             </a>
 
             {/* Secondary Actions */}
