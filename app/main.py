@@ -30,7 +30,7 @@ from .pdf_service import (
     split_pdf,
     unlock_pdf,
 )
-from PIL import Image
+from PIL import Image, ImageDraw
 
 settings = get_settings()
 app = FastAPI(title="PDF Lover API", version="0.1.0")
@@ -226,6 +226,31 @@ async def unlock(file: Annotated[UploadFile, File(...)], password: Annotated[str
     except Exception as exc:
         raise HTTPException(400, f"Could not unlock PDF: {exc}") from exc
     return Response(result, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="unlocked.pdf"'})
+
+
+@app.post("/api/redact")
+async def redact(file: Annotated[UploadFile, File(...)], regions: Annotated[str, Form(...)]) -> Response:
+    data = await file.read(); check_file(file, data)
+    try:
+        parsed = json.loads(regions)
+        if not isinstance(parsed, list):
+            raise ValueError("regions must be a list")
+        document = pdfium.PdfDocument(data); pages = []
+        for index in range(len(document)):
+            image = document[index].render(scale=2).to_pil().convert("RGB")
+            draw = ImageDraw.Draw(image)
+            for item in parsed:
+                if int(item.get("page", 0)) != index + 1:
+                    continue
+                x, y, width, height = [float(item.get(key, 0)) for key in ("x", "y", "width", "height")]
+                left, top = int(x * image.width), int(y * image.height)
+                right, bottom = int((x + width) * image.width), int((y + height) * image.height)
+                draw.rectangle((left, top, right, bottom), fill=(0, 0, 0))
+            pages.append(image)
+        output = BytesIO(); pages[0].save(output, format="PDF", save_all=True, append_images=pages[1:])
+        return Response(output.getvalue(), media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="redacted.pdf"'})
+    except Exception as exc:
+        raise HTTPException(400, f"Could not redact PDF: {exc}") from exc
 
 
 @app.post("/api/extract-table")
