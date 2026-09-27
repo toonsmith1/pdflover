@@ -96,6 +96,17 @@ def test_organize():
     assert res.status_code == 200
     assert res.headers["content-type"] == "application/pdf"
 
+    # Test thumbnails endpoint
+    res_thumbs = client.post(
+        "/api/pdf-thumbnails",
+        files={"file": ("merged.pdf", merged, "application/pdf")},
+    )
+    assert res_thumbs.status_code == 200
+    thumbs_data = res_thumbs.json()
+    assert thumbs_data["pages"] == 2
+    assert len(thumbs_data["thumbnails"]) == 2
+    assert thumbs_data["thumbnails"][0].startswith("data:image/jpeg;base64,")
+
 
 def test_rotate():
     pdf = make_test_pdf("Rotate me")

@@ -1,3 +1,4 @@
+import base64
 import json
 from io import BytesIO
 from pathlib import Path
@@ -117,6 +118,30 @@ async def pdf_info(file: Annotated[UploadFile, File(...)]) -> dict[str, Any]:
         }
     except Exception as exc:
         raise HTTPException(400, f"Could not read PDF: {exc}") from exc
+
+
+@app.post("/api/pdf-thumbnails")
+async def pdf_thumbnails(file: Annotated[UploadFile, File(...)], max_pages: int = 100) -> dict[str, Any]:
+    data = await file.read()
+    check_file(file, data)
+    try:
+        document = pdfium.PdfDocument(data)
+        total_pages = len(document)
+        limit = min(total_pages, max(1, max_pages))
+        thumbnails = []
+        for i in range(limit):
+            bitmap = document[i].render(scale=0.5)
+            image = bitmap.to_pil()
+            output = BytesIO()
+            image.save(output, format="JPEG", quality=75)
+            b64 = base64.b64encode(output.getvalue()).decode("ascii")
+            thumbnails.append(f"data:image/jpeg;base64,{b64}")
+        return {
+            "pages": total_pages,
+            "thumbnails": thumbnails,
+        }
+    except Exception as exc:
+        raise HTTPException(400, f"Could not generate thumbnails: {exc}") from exc
 
 
 @app.post("/api/rotate")

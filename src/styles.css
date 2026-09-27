@@ -2304,3 +2304,229 @@ footer {
   align-items: center;
   gap: 8px;
 }
+
+/* =========================================================
+   VISUAL PAGE ORGANIZER (แสดงภาพตัวอย่างทุกหน้า)
+========================================================= */
+.organize-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.organize-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: #fffdfa;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.organize-toolbar-left,
+.organize-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.organize-file-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.organize-page-count {
+  color: var(--muted-foreground);
+  font-size: 12.5px;
+  font-weight: normal;
+}
+
+.organize-hint-banner {
+  font-size: 13px;
+  color: var(--muted-foreground);
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 14px;
+}
+
+.organize-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 16px;
+  padding: 18px;
+  background: #f0ece3;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-height: 280px;
+  max-height: 72vh;
+  overflow-y: auto;
+}
+
+.organize-card {
+  display: flex;
+  flex-direction: column;
+  background: #fffdfa;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px;
+  box-shadow: 0 2px 8px rgba(50, 42, 30, 0.06);
+  cursor: grab;
+  user-select: none;
+  transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
+}
+
+.organize-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(50, 42, 30, 0.12);
+  border-color: var(--primary);
+}
+
+.organize-card.is-dragging {
+  opacity: 0.35;
+  cursor: grabbing;
+}
+
+.organize-card.is-drag-over {
+  border-color: #3b6639;
+  background: #f4faf2;
+  transform: scale(1.03);
+}
+
+.organize-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.organize-badge-pos {
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--primary);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.organize-delete-btn {
+  border: none;
+  background: transparent;
+  color: var(--muted-foreground);
+  padding: 3px;
+  border-radius: 3px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: all 0.12s ease;
+}
+
+.organize-delete-btn:hover {
+  color: var(--destructive);
+  background: #fbeee8;
+}
+
+.organize-thumb-container {
+  width: 100%;
+  aspect-ratio: 1 / 1.414;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.organize-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.organize-thumb-empty {
+  display: grid;
+  place-items: center;
+  color: var(--muted-foreground);
+  font-size: 13px;
+}
+
+.organize-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+  padding-top: 4px;
+  border-top: 1px dashed var(--border);
+}
+
+.organize-nudge-btn {
+  border: 1px solid var(--border);
+  background: #ffffff;
+  border-radius: 3px;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: var(--foreground);
+  transition: all 0.12s ease;
+}
+
+.organize-nudge-btn:hover:not(:disabled) {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
+
+.organize-nudge-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.organize-orig-label {
+  font-size: 11px;
+  color: var(--muted-foreground);
+}
+
+.organize-bottom-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px 18px;
+  background: #fffdfa;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.organize-summary-text {
+  font-size: 13px;
+  color: var(--muted-foreground);
+  font-weight: 500;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.organize-save-btn {
+  min-height: 46px;
+  padding: 10px 24px;
+  font-size: 15px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
