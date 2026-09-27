@@ -4,7 +4,7 @@ PDF Lover is a local-first PDF toolbox with a small Python service and a browser
 
 ## Current status
 
-The repository currently contains the Muji-style tool catalog preview in [`pdflover-preview.html`](./pdflover-preview.html). The Python service structure and dependency manifest are prepared for the next implementation phase.
+The repository contains the React tool catalog and a local FastAPI service. PDF processing stays on the local machine; OCR is the separate remote Typhoon OCR service.
 
 ## Requirements
 
@@ -16,6 +16,26 @@ The repository currently contains the Muji-style tool catalog preview in [`pdflo
 PDF operations that do not use OCR can run without internet after dependencies are installed. OCR sends the selected document pages to the configured provider; do not use the OCR feature for sensitive documents unless that data flow is acceptable.
 
 ## Quick start
+
+On Linux or macOS, the one-time setup is:
+
+```bash
+git clone https://github.com/toonsmith1/pdflover.git
+cd pdflover
+./setup.sh
+```
+
+Start the app any time with:
+
+```bash
+./run.sh
+```
+
+Open <http://127.0.0.1:8000>. Use `HOST=0.0.0.0 PORT=8000 ./run.sh` only when you intentionally want another device on the network to reach the app.
+
+The setup script requires Python 3.11+, Node.js/npm 18+, and internet access for the first dependency installation. It creates `.venv`, installs Python packages, installs frontend packages, builds `dist/`, and creates `.env` from `.env.example`.
+
+For manual setup:
 
 ```bash
 python3 -m venv .venv
@@ -29,7 +49,7 @@ npm install
 npm run build
 ```
 
-Run the web app:
+Run the web app manually:
 
 ```bash
 python -m uvicorn app.main:app --reload
