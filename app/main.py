@@ -485,6 +485,11 @@ def tool_page(tool_name: str) -> FileResponse:
         "protect",
         "unlock",
         "redact",
+        "delete-pages",
+        "insert-page",
+        "add-image",
+        "highlight",
+        "remove-metadata",
     }:
         raise HTTPException(404, "Tool not found")
     index_file = dist_dir / "index.html"
