@@ -4732,3 +4732,7 @@ footer {
 .external-tools-heading span { color:var(--muted); font-size:12px; }
 .tool-external { border-color:#d9c7c1; background:#fffaf8; }
 @media(max-width:650px){.external-tools-heading{display:block}.external-tools-heading span{display:block;margin-top:6px}}
+.image-page-preview{padding:14px;background:var(--paper);border:1px solid var(--line)}
+.image-preview-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px}
+.image-thumb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;max-height:460px;overflow:auto}
+.image-thumb{padding:6px;border:2px solid transparent;background:#fff;color:var(--ink);cursor:pointer;text-align:center}.image-thumb.selected{border-color:var(--red);background:#f4e9e5}.image-thumb img{display:block;width:100%;aspect-ratio:3/4;object-fit:contain;background:#eee;margin-bottom:5px}.image-thumb span{font-size:12px}
