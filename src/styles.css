@@ -4725,3 +4725,10 @@ footer {
 .sig-ctrl-btn.danger:hover {
   background: #faeceb;
 }
+.external-tools-section { margin-top: 36px; padding-top: 24px; border-top: 1px solid var(--line); }
+.external-tools-heading { display:flex; justify-content:space-between; align-items:end; gap:18px; margin-bottom:14px; }
+.external-tools-heading small { color:var(--red); letter-spacing:.08em; }
+.external-tools-heading h2 { margin:4px 0 0; font-size:20px; font-weight:500; }
+.external-tools-heading span { color:var(--muted); font-size:12px; }
+.tool-external { border-color:#d9c7c1; background:#fffaf8; }
+@media(max-width:650px){.external-tools-heading{display:block}.external-tools-heading span{display:block;margin-top:6px}}

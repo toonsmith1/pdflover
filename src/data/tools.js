@@ -10,7 +10,6 @@ export const TOOLS = [
   { category: 'edit', categoryLabel: 'แก้ไขเอกสาร', id: 'watermark', name: 'ใส่ลายน้ำ', desc: 'เพิ่มชื่อหรือสถานะเอกสาร', iconName: 'Stamp', badge: '' },
   { category: 'edit', categoryLabel: 'แก้ไขเอกสาร', id: 'pagenum', name: 'ใส่เลขหน้า', desc: 'เรียงลำดับให้อ้างอิงง่าย', iconName: 'Hash', badge: '' },
   { category: 'edit', categoryLabel: 'แก้ไขเอกสาร', id: 'signature', name: 'เพิ่มรูปลายเซ็น', desc: 'วางลายเซ็นบนหน้ากระดาษ', iconName: 'PenTool', badge: '' },
-  { category: 'convert', categoryLabel: 'แปลงและดึงข้อมูล', id: 'ocr', name: 'อ่านข้อความ · OCR', desc: 'ทำไฟล์สแกนให้ค้นหาได้', iconName: 'ScanText', badge: 'Typhoon AI' },
   { category: 'convert', categoryLabel: 'แปลงและดึงข้อมูล', id: 'image', name: 'PDF เป็นรูป', desc: 'บันทึกแต่ละหน้าเป็นภาพ', iconName: 'FileImage', badge: '' },
   { category: 'convert', categoryLabel: 'แปลงและดึงข้อมูล', id: 'image-pdf', name: 'รูปเป็น PDF', desc: 'รวมภาพให้เป็นเอกสาร', iconName: 'Images', badge: '' },
   { category: 'convert', categoryLabel: 'แปลงและดึงข้อมูล', id: 'extract-text', name: 'ดึงข้อความ', desc: 'นำเนื้อหาไปใช้ต่อ', iconName: 'FileText', badge: '' },
@@ -18,6 +17,7 @@ export const TOOLS = [
   { category: 'secure', categoryLabel: 'ความปลอดภัย', id: 'protect', name: 'ตั้งรหัสผ่าน', desc: 'เพิ่มรหัสสำหรับเปิดเอกสาร', iconName: 'Lock', badge: '' },
   { category: 'secure', categoryLabel: 'ความปลอดภัย', id: 'unlock', name: 'ถอดรหัสผ่าน', desc: 'เปิดไฟล์ที่มีรหัสอยู่แล้ว', iconName: 'Unlock', badge: '' },
   { category: 'secure', categoryLabel: 'ความปลอดภัย', id: 'redact', name: 'ลบข้อมูลลับ', desc: 'นำข้อมูลที่เลือกออกถาวร', iconName: 'Eraser', badge: '' },
+  { category: 'external', categoryLabel: 'บริการภายนอก', id: 'ocr', name: 'อ่านข้อความ · OCR', desc: 'ส่งเอกสารไปประมวลผลผ่าน Typhoon OCR API', iconName: 'ScanText', badge: 'API ภายนอก' },
 ];
 
 export const CATEGORIES = [
@@ -26,6 +26,7 @@ export const CATEGORIES = [
   { id: 'edit', label: 'แก้ไขเอกสาร' },
   { id: 'convert', label: 'แปลงและดึงข้อมูล' },
   { id: 'secure', label: 'ความปลอดภัย' },
+  { id: 'external', label: 'บริการภายนอก' },
 ];
 
 export const TOOL_MAP = Object.fromEntries(TOOLS.map(t => [t.id, t]));

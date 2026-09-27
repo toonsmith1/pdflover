@@ -31,6 +31,18 @@ export default function ToolCatalog() {
     return counts;
   }, []);
 
+  const renderTool = (tool) => (
+    <Link key={tool.id} to={`/tool/${tool.id}`} className={`tool ${tool.category === 'external' ? 'tool-external' : ''}`}>
+      <div className="tool-card-top">
+        <div className="tool-icon-wrapper"><Icon name={tool.iconName} size={22} strokeWidth={1.8} /></div>
+        {tool.badge && <span className="tool-badge">{tool.badge}</span>}
+        <ArrowUpRight size={16} className="tool-arrow-icon" />
+      </div>
+      <strong>{tool.name}</strong><span>{tool.desc}</span>
+      <div className="tool-card-footer"><small>{tool.id.toUpperCase()}</small></div>
+    </Link>
+  );
+
   return (
     <main className="wrap">
       {/* Hero Section (Compact Split Grid with Partner Spotlight) */}
@@ -91,25 +103,14 @@ export default function ToolCatalog() {
 
       {/* Tools Grid */}
       <section className="grid" id="tools">
-        {filteredTools.map((tool) => (
-          <Link key={tool.id} to={`/tool/${tool.id}`} className="tool">
-            <div className="tool-card-top">
-              <div className="tool-icon-wrapper">
-                <Icon name={tool.iconName} size={22} strokeWidth={1.8} />
-              </div>
-              {tool.badge && <span className="tool-badge">{tool.badge}</span>}
-              <ArrowUpRight size={16} className="tool-arrow-icon" />
-            </div>
-
-            <strong>{tool.name}</strong>
-            <span>{tool.desc}</span>
-
-            <div className="tool-card-footer">
-              <small>{tool.id.toUpperCase()}</small>
-            </div>
-          </Link>
-        ))}
+        {filteredTools.filter((tool) => tool.category !== 'external').map(renderTool)}
       </section>
+      {filteredTools.some((tool) => tool.category === 'external') && (
+        <section className="external-tools-section">
+          <div className="external-tools-heading"><div><small>API / INTERNET REQUIRED</small><h2>บริการที่ส่งไฟล์ไปประมวลผลภายนอก</h2></div><span>ตรวจสอบนโยบายข้อมูลก่อนใช้งาน</span></div>
+          <div className="grid external-tools-grid">{filteredTools.filter((tool) => tool.category === 'external').map(renderTool)}</div>
+        </section>
+      )}
 
       {filteredTools.length === 0 && (
         <div className="catalog-empty-search">
