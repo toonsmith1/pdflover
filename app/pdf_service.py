@@ -65,7 +65,9 @@ def protect_pdf(data: bytes, password: str) -> bytes:
     reader = PdfReader(BytesIO(data))
     writer = PdfWriter()
     writer.clone_document_from_reader(reader)
-    writer.encrypt(password)
+    # Pass both values explicitly. This avoids the owner-password hashing path
+    # in older pypdf/cryptography combinations that expects encoded strings.
+    writer.encrypt(user_password=password, owner_password=password)
     output = BytesIO(); writer.write(output)
     return output.getvalue()
 
