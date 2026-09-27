@@ -448,3 +448,91 @@ def add_notes_pdf(
     output = BytesIO()
     writer.write(output)
     return output.getvalue()
+
+
+def add_signatures_pdf(
+    data: bytes,
+    signatures: list[dict],
+) -> bytes:
+    """
+    Merge signature images onto their corresponding PDF pages.
+    signatures is a list of dicts:
+    [
+        {
+            "page": 1,
+            "image": "data:image/png;base64,...",
+            "x": 0.5,       # 0.0 to 1.0 (from left)
+            "y": 0.8,       # 0.0 to 1.0 (from top)
+            "width": 0.25,  # 0.0 to 1.0 (relative to page width)
+            "height": 0.12, # optional 0.0 to 1.0 (relative to page height)
+        }
+    ]
+    """
+    if not signatures:
+        return data
+
+    reader = PdfReader(BytesIO(data))
+    writer = PdfWriter()
+
+    # Group signatures by page
+    page_sigs: dict[int, list[dict]] = {}
+    for sig in signatures:
+        try:
+            p = int(sig.get("page", 1))
+            page_sigs.setdefault(p, []).append(sig)
+        except (ValueError, TypeError):
+            continue
+
+    for idx, page in enumerate(reader.pages):
+        page_num = idx + 1
+        sigs_for_page = page_sigs.get(page_num, [])
+
+        if sigs_for_page:
+            pw = float(page.mediabox.width)
+            ph = float(page.mediabox.height)
+
+            over_pdf_io = BytesIO()
+            cv = canvas.Canvas(over_pdf_io, pagesize=(pw, ph))
+
+            for sig in sigs_for_page:
+                raw_img = sig.get("image", "")
+                if "," in raw_img:
+                    raw_img = raw_img.split(",", 1)[1]
+                if not raw_img:
+                    continue
+
+                try:
+                    img_bytes = base64.b64decode(raw_img)
+                    img_reader = ImageReader(BytesIO(img_bytes))
+                    img_w, img_h = img_reader.getSize()
+
+                    x_ratio = float(sig.get("x", 0.1))
+                    y_ratio = float(sig.get("y", 0.8))
+                    w_ratio = float(sig.get("width", 0.25))
+                    h_ratio = float(sig.get("height", 0.0))
+
+                    w_pt = w_ratio * pw
+                    if h_ratio > 0:
+                        h_pt = h_ratio * ph
+                    elif img_w > 0:
+                        h_pt = (w_pt / img_w) * img_h
+                    else:
+                        h_pt = w_pt * 0.5
+
+                    x_pt = x_ratio * pw
+                    # Invert Y from top-origin (frontend) to bottom-origin (PDF)
+                    y_pt = (1.0 - y_ratio) * ph - h_pt
+
+                    cv.drawImage(img_reader, x_pt, y_pt, width=w_pt, height=h_pt, mask="auto")
+                except Exception as exc:
+                    raise ValueError(f"Could not render signature on page {page_num}: {exc}") from exc
+
+            cv.save()
+            over_pdf_io.seek(0)
+            page.merge_page(PdfReader(over_pdf_io).pages[0], over=True)
+
+        writer.add_page(page)
+
+    output = BytesIO()
+    writer.write(output)
+    return output.getvalue()

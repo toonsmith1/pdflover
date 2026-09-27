@@ -11,6 +11,7 @@ import TextTool from './tools/TextTool';
 import NoteTool from './tools/NoteTool';
 import PageNumTool from './tools/PageNumTool';
 import WatermarkTool from './tools/WatermarkTool';
+import SignatureTool from './tools/SignatureTool';
 import GenericTool from './tools/GenericTool';
 
 export default function ToolPage() {
@@ -57,6 +58,8 @@ export default function ToolPage() {
         return <PageNumTool />;
       case 'watermark':
         return <WatermarkTool />;
+      case 'signature':
+        return <SignatureTool />;
       default:
         return <GenericTool toolId={toolId} />;
     }

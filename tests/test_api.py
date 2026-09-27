@@ -237,3 +237,23 @@ def test_react_spa_routes():
     res_text = client.get("/tool/text")
     assert res_text.status_code == 200
     assert "root" in res_text.text
+
+
+def test_signature():
+    pdf = make_test_pdf("Sign me")
+    # Create a minimal 1x1 transparent PNG as base64
+    import base64
+
+    # 1x1 transparent PNG
+    png_bytes = base64.b64decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+    )
+    sig_b64 = "data:image/png;base64," + base64.b64encode(png_bytes).decode()
+    sigs = [{"page": 1, "x": 0.3, "y": 0.7, "width": 0.2, "image": sig_b64}]
+    res = client.post(
+        "/api/signature",
+        files={"file": ("doc.pdf", pdf, "application/pdf")},
+        data={"signatures": json.dumps(sigs)},
+    )
+    assert res.status_code == 200
+    assert res.headers["content-type"] == "application/pdf"

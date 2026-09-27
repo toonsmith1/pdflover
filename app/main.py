@@ -15,6 +15,7 @@ from .config import get_settings
 from .pdf_service import (
     add_notes_pdf,
     add_page_numbers_pdf,
+    add_signatures_pdf,
     add_text_pdf,
     add_watermark_pdf,
     compress_pdf,
@@ -292,6 +293,24 @@ async def add_notes(
     except (ValueError, TypeError, json.JSONDecodeError) as exc:
         raise HTTPException(400, str(exc)) from exc
     return Response(result, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="annotated.pdf"'})
+
+
+@app.post("/api/signature")
+async def sign_document(
+    file: Annotated[UploadFile, File(...)],
+    signatures: Annotated[str, Form(...)],
+) -> Response:
+    data = await file.read()
+    check_file(file, data)
+    try:
+        parsed_sigs = json.loads(signatures)
+        if not isinstance(parsed_sigs, list):
+            raise TypeError("signatures must be a json list of objects")
+        result = add_signatures_pdf(data, parsed_sigs)
+    except (ValueError, TypeError, json.JSONDecodeError) as exc:
+        raise HTTPException(400, str(exc)) from exc
+    return Response(result, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="signed.pdf"'})
+
 
 
 @app.post("/api/compress")

@@ -4486,3 +4486,231 @@ footer {
   text-align: center;
   margin-top: 8px;
 }
+
+/* ============================================================
+   Signature Tool Styles
+   ============================================================ */
+.signature-panel {
+  max-width: 960px;
+}
+
+/* Draw / Upload Stage */
+.sig-draw-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 640px;
+}
+
+.sig-mode-tabs {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.sig-mode-tab {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  background: var(--card);
+  color: var(--muted-foreground);
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sig-mode-tab:not(:last-child) {
+  border-right: 1px solid var(--border);
+}
+
+.sig-mode-tab:hover {
+  background: #ede8df;
+}
+
+.sig-mode-tab.active {
+  background: #ffffff;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.sig-draw-area,
+.sig-upload-area {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sig-draw-hint {
+  font-size: 13px;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.sig-canvas-wrap {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  background: #ffffff;
+  padding: 8px;
+  display: flex;
+  justify-content: center;
+}
+
+.sig-draw-canvas {
+  display: block;
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  cursor: crosshair;
+  touch-action: none;
+  border-radius: 4px;
+}
+
+.sig-draw-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.sig-upload-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--muted-foreground);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.sig-upload-label:hover {
+  border-color: var(--primary);
+  background: #f7f4ed;
+}
+
+.sig-preview-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.sig-preview-img {
+  max-width: 300px;
+  max-height: 120px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #f9f8f5;
+  padding: 8px;
+}
+
+/* Place Stage */
+.sig-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  overflow: hidden;
+}
+
+.sig-workspace.is-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  border-radius: 0;
+  border: none;
+}
+
+.sig-toolbar-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sig-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  background: rgba(121, 53, 47, 0.08);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+/* Placed signature overlay */
+.sig-placed {
+  position: absolute;
+  cursor: grab;
+  z-index: 12;
+  user-select: none;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  transition: border-color 0.12s;
+}
+
+.sig-placed:hover,
+.sig-placed.active {
+  border-color: var(--primary);
+}
+
+.sig-placed img {
+  width: 100%;
+  height: auto;
+  display: block;
+  pointer-events: none;
+}
+
+.sig-controls {
+  position: absolute;
+  top: -28px;
+  right: 0;
+  display: flex;
+  gap: 2px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 2px;
+}
+
+.sig-ctrl-btn {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--foreground);
+  border-radius: 3px;
+  transition: background 0.12s;
+}
+
+.sig-ctrl-btn:hover {
+  background: #ede8df;
+}
+
+.sig-ctrl-btn.danger {
+  color: #8c413b;
+}
+
+.sig-ctrl-btn.danger:hover {
+  background: #faeceb;
+}
