@@ -26,6 +26,7 @@ from .pdf_service import (
     rotate_pdf,
     split_pdf,
 )
+from PIL import Image
 
 settings = get_settings()
 app = FastAPI(title="PDF Lover API", version="0.1.0")
@@ -169,6 +170,24 @@ async def pdf_to_images(file: Annotated[UploadFile, File(...)], pages: Annotated
         return Response(output.getvalue(), media_type="application/zip", headers={"Content-Disposition": 'attachment; filename="pdf-images.zip"'})
     except Exception as exc:
         raise HTTPException(400, f"Could not convert PDF to images: {exc}") from exc
+
+
+@app.post("/api/images-to-pdf")
+async def images_to_pdf(files: Annotated[list[UploadFile], File(...)]) -> Response:
+    if not files:
+        raise HTTPException(400, "Choose at least one image")
+    try:
+        images = []
+        for upload in files:
+            data = await upload.read()
+            if upload.content_type not in {"image/png", "image/jpeg", "image/webp", "image/jpg", "application/octet-stream", None}:
+                raise ValueError("Only PNG, JPEG, and WebP images are supported")
+            image = Image.open(BytesIO(data)).convert("RGB")
+            images.append(image)
+        output = BytesIO(); images[0].save(output, format="PDF", save_all=True, append_images=images[1:])
+        return Response(output.getvalue(), media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="images.pdf"'})
+    except Exception as exc:
+        raise HTTPException(400, f"Could not create PDF from images: {exc}") from exc
 
 
 @app.post("/api/rotate")

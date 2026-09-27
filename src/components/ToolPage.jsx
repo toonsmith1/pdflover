@@ -14,6 +14,7 @@ import WatermarkTool from './tools/WatermarkTool';
 import SignatureTool from './tools/SignatureTool';
 import GenericTool from './tools/GenericTool';
 import ImageTool from './tools/ImageTool';
+import ImagePdfTool from './tools/ImagePdfTool';
 
 export default function ToolPage() {
   const { toolId } = useParams();
@@ -63,6 +64,8 @@ export default function ToolPage() {
         return <SignatureTool />;
       case 'image':
         return <ImageTool />;
+      case 'image-pdf':
+        return <ImagePdfTool />;
       default:
         return <GenericTool toolId={toolId} />;
     }
