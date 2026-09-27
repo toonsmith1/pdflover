@@ -9,11 +9,10 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
 THAI_FONT = "/usr/share/fonts/truetype/tlwg/Loma.ttf"
-try:
-    pdfmetrics.registerFont(TTFont("PDFLoverThai", THAI_FONT))
-    TEXT_FONT = "PDFLoverThai"
-except OSError:
-    TEXT_FONT = "Helvetica"
+FONT_FILES = {"loma": THAI_FONT, "krub": "/home/kriangkrai/.local/share/fonts/ThaiNational/TH Krub.ttf", "umpush": "/usr/share/fonts/truetype/tlwg/Umpush.ttf"}
+for font_name, font_path in FONT_FILES.items():
+    try: pdfmetrics.registerFont(TTFont(f"PDFLover-{font_name}", font_path))
+    except OSError: pass
 
 
 def merge_pdfs(files: list[bytes]) -> bytes:
@@ -83,15 +82,21 @@ def crop_pdf(data: bytes, left: float, bottom: float, right: float, top: float) 
     return output.getvalue()
 
 
-def add_text_pdf(data: bytes, text: str, x: float, y: float, size: float) -> bytes:
+def add_text_pdf(data: bytes, text: str, x: float, y: float, size: float, font: str = "loma", color: str = "#222222") -> bytes:
     if not text.strip() or size <= 0:
         raise ValueError("text and a positive font size are required")
+    if font not in FONT_FILES or f"PDFLover-{font}" not in pdfmetrics.getRegisteredFontNames():
+        raise ValueError("unsupported font")
+    if not color.startswith("#") or len(color) != 7:
+        raise ValueError("color must be a hex value")
+    try: rgb = tuple(int(color[i:i + 2], 16) / 255 for i in (1, 3, 5))
+    except ValueError as exc: raise ValueError("color must be a hex value") from exc
     reader = PdfReader(BytesIO(data))
     writer = PdfWriter()
     for page in reader.pages:
         overlay = BytesIO()
         layer = canvas.Canvas(overlay, pagesize=(float(page.mediabox.width), float(page.mediabox.height)))
-        layer.setFont(TEXT_FONT, size)
+        layer.setFont(f"PDFLover-{font}", size); layer.setFillColorRGB(*rgb)
         layer.drawString(x, y, text)
         layer.save()
         overlay.seek(0)
