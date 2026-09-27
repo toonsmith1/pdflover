@@ -105,9 +105,6 @@ export default function DownloadScreen({
 
         {/* Right Side: The Ad / Shopee Recommendation / Buy Me a Coffee */}
         <div className="download-spotlight-wrapper">
-          <div className="download-spotlight-header">
-            <span className="download-spotlight-label">ข้อเสนอแนะนำสำหรับคุณ</span>
-          </div>
           <PartnerSpotlight />
         </div>
       </div>

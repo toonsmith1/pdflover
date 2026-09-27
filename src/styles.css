@@ -1682,14 +1682,15 @@ footer {
 }
 
 .spotlight-desc {
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--muted-foreground);
-  line-height: 1.45;
+  line-height: 1.55;
   margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  word-break: break-word;
 }
 
 .spotlight-price-row {
@@ -1934,9 +1935,9 @@ footer {
 
 .download-stage-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.22fr) minmax(310px, 0.95fr);
-  gap: 24px;
-  align-items: start;
+  grid-template-columns: minmax(0, 1.22fr) minmax(320px, 1fr);
+  gap: 20px;
+  align-items: stretch;
 }
 
 .download-main-card {
@@ -1946,8 +1947,10 @@ footer {
   padding: 24px 26px;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   gap: 16px;
   box-shadow: 0 3px 14px rgba(70, 58, 42, 0.04);
+  height: 100%;
 }
 
 .download-card-header {
@@ -2016,7 +2019,7 @@ footer {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 4px;
+  margin-top: auto;
 }
 
 .download-main-btn {
@@ -2040,16 +2043,30 @@ footer {
 .download-spotlight-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  height: 100%;
 }
 
-.download-spotlight-header {
-  font-size: 11.5px;
-  font-weight: 500;
-  color: var(--muted-foreground);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding-left: 2px;
+.download-spotlight-wrapper .spotlight-card {
+  max-width: 100%;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 24px 26px;
+  box-sizing: border-box;
+}
+
+.download-spotlight-wrapper .spotlight-content-row {
+  align-items: center;
+  gap: 16px;
+  margin-block: auto;
+  padding-block: 8px;
+}
+
+.download-spotlight-wrapper .spotlight-thumb-wrapper {
+  width: 78px;
+  height: 78px;
 }
 
 .download-preview-drawer {

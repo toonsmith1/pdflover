@@ -24,7 +24,7 @@ export default function ToolPage() {
 
   if (!tool) {
     return (
-      <main className="tool-page">
+      <main className="tool-page wrap">
         <Link to="/" className="back">← กลับไปเลือกเครื่องมือ</Link>
         <h1>ไม่พบเครื่องมือนี้</h1>
         <p>กรุณากลับไปที่หน้าหลักเพื่อเลือกเครื่องมือใหม่อีกครั้ง</p>
@@ -54,7 +54,7 @@ export default function ToolPage() {
   };
 
   return (
-    <main className="tool-page">
+    <main className="tool-page wrap">
       <Link to="/" className="back">← กลับไปเลือกเครื่องมือ</Link>
       <small id="category">{tool.categoryLabel}</small>
       <h1 id="title">{tool.name}</h1>
