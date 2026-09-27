@@ -9,6 +9,7 @@ import RotateTool from './tools/RotateTool';
 import CropTool from './tools/CropTool';
 import TextTool from './tools/TextTool';
 import PageNumTool from './tools/PageNumTool';
+import WatermarkTool from './tools/WatermarkTool';
 import GenericTool from './tools/GenericTool';
 
 export default function ToolPage() {
@@ -51,6 +52,8 @@ export default function ToolPage() {
         return <TextTool />;
       case 'pagenum':
         return <PageNumTool />;
+      case 'watermark':
+        return <WatermarkTool />;
       default:
         return <GenericTool toolId={toolId} />;
     }

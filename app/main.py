@@ -15,6 +15,7 @@ from .config import get_settings
 from .pdf_service import (
     add_page_numbers_pdf,
     add_text_pdf,
+    add_watermark_pdf,
     compress_pdf,
     crop_pdf,
     merge_pdfs,
@@ -146,11 +147,21 @@ async def pdf_thumbnails(file: Annotated[UploadFile, File(...)], max_pages: int 
 
 
 @app.post("/api/rotate")
-async def rotate(file: Annotated[UploadFile, File(...)], degrees: Annotated[int, Form()] = 90) -> Response:
+async def rotate(
+    file: Annotated[UploadFile, File(...)],
+    degrees: Annotated[int, Form()] = 0,
+    rotations: Annotated[str | None, Form()] = None,
+) -> Response:
     data = await file.read()
     check_file(file, data)
     try:
-        result = rotate_pdf(data, degrees)
+        parsed_rotations = None
+        if rotations:
+            try:
+                parsed_rotations = json.loads(rotations)
+            except json.JSONDecodeError:
+                pass
+        result = rotate_pdf(data, degrees=degrees, page_rotations=parsed_rotations)
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc
     return Response(result, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="rotated.pdf"'})
@@ -209,6 +220,46 @@ async def pagenum(
     except Exception as exc:
         raise HTTPException(400, f"Could not add page numbers: {exc}") from exc
     return Response(result, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="numbered.pdf"'})
+
+
+@app.post("/api/watermark")
+async def watermark(
+    file: Annotated[UploadFile, File(...)],
+    text: Annotated[str, Form()] = "",
+    image: Annotated[UploadFile | None, File()] = None,
+    angle: Annotated[float, Form()] = 45.0,
+    font_name: Annotated[str, Form()] = "loma",
+    font_size: Annotated[float, Form()] = 48.0,
+    color: Annotated[str, Form()] = "#888888",
+    opacity: Annotated[float, Form()] = 0.25,
+    position: Annotated[str, Form()] = "center",
+    layer: Annotated[str, Form()] = "over",
+    skip_first: Annotated[bool, Form()] = False,
+    page_mode: Annotated[str, Form()] = "all",
+) -> Response:
+    data = await file.read()
+    check_file(file, data)
+    image_data = None
+    if image and image.filename:
+        image_data = await image.read()
+    try:
+        result = add_watermark_pdf(
+            data,
+            text=text,
+            image_data=image_data,
+            angle=angle,
+            font_name=font_name,
+            font_size=font_size,
+            color=color,
+            opacity=opacity,
+            position=position,
+            layer=layer,
+            skip_first=skip_first,
+            page_mode=page_mode,
+        )
+    except Exception as exc:
+        raise HTTPException(400, f"Could not add watermark: {exc}") from exc
+    return Response(result, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="watermarked.pdf"'})
 
 
 @app.post("/api/render-preview")

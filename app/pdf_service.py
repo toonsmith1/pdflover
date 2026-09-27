@@ -5,7 +5,9 @@ from io import BytesIO
 from pathlib import Path
 
 import pikepdf
+from PIL import Image
 from pypdf import PdfReader, PdfWriter
+from reportlab.lib.utils import ImageReader
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFError, TTFont
 from reportlab.pdfgen import canvas
@@ -56,13 +58,38 @@ def organize_pdf(data: bytes, order: list[int]) -> bytes:
     return output.getvalue()
 
 
-def rotate_pdf(data: bytes, degrees: int) -> bytes:
-    if degrees not in {90, 180, 270}:
+def rotate_pdf(
+    data: bytes,
+    degrees: int = 0,
+    page_rotations: dict[str | int, int] | list[int] | None = None,
+) -> bytes:
+    if page_rotations is None and degrees not in {0, 90, 180, 270}:
         raise ValueError("degrees must be 90, 180, or 270")
     reader = PdfReader(BytesIO(data))
     writer = PdfWriter()
-    for page in reader.pages:
-        page.rotate(degrees)
+    for idx, page in enumerate(reader.pages):
+        page_deg = 0
+        if page_rotations is not None:
+            if isinstance(page_rotations, dict):
+                for k in (idx + 1, str(idx + 1), idx, str(idx)):
+                    if k in page_rotations:
+                        page_deg = page_rotations[k]
+                        break
+            elif isinstance(page_rotations, list) and idx < len(page_rotations):
+                page_deg = page_rotations[idx]
+        elif degrees:
+            page_deg = degrees
+
+        try:
+            page_deg = int(page_deg) % 360
+        except (ValueError, TypeError):
+            page_deg = 0
+
+        if page_deg % 90 != 0:
+            raise ValueError("Rotation degrees must be a multiple of 90")
+
+        if page_deg != 0:
+            page.rotate(page_deg)
         writer.add_page(page)
     output = BytesIO()
     writer.write(output)
@@ -243,6 +270,129 @@ def add_page_numbers_pdf(
         layer.save()
         overlay.seek(0)
         page.merge_page(PdfReader(overlay).pages[0])
+        writer.add_page(page)
+
+    output = BytesIO()
+    writer.write(output)
+    return output.getvalue()
+
+
+def add_watermark_pdf(
+    data: bytes,
+    text: str = "",
+    image_data: bytes | None = None,
+    angle: float = 45.0,
+    font_name: str = "loma",
+    font_size: float = 48.0,
+    color: str = "#888888",
+    opacity: float = 0.25,
+    position: str = "center",
+    layer: str = "over",
+    skip_first: bool = False,
+    page_mode: str = "all",
+) -> bytes:
+    if not text and not image_data:
+        raise ValueError("Watermark text or image is required")
+
+    reader = PdfReader(BytesIO(data))
+    writer = PdfWriter()
+    total_pages = len(reader.pages)
+    if total_pages == 0:
+        raise ValueError("PDF document is empty")
+
+    registered_font = f"PDFLover-{font_name}"
+    if registered_font not in pdfmetrics.getRegisteredFontNames():
+        available = [f for f in pdfmetrics.getRegisteredFontNames() if f.startswith("PDFLover-")]
+        registered_font = available[0] if available else "Helvetica"
+
+    hex_clean = color.lstrip("#")
+    if len(hex_clean) == 6:
+        rgb = tuple(int(hex_clean[i:i + 2], 16) / 255.0 for i in (0, 2, 4))
+    else:
+        rgb = (0.5, 0.5, 0.5)
+
+    alpha = max(0.01, min(1.0, float(opacity)))
+
+    img_reader = None
+    img_w, img_h = 0.0, 0.0
+    if image_data:
+        try:
+            pil_img = Image.open(BytesIO(image_data))
+            orig_w, orig_h = pil_img.size
+            aspect = orig_h / max(1, orig_w)
+            img_w = min(float(orig_w), 240.0)
+            img_h = img_w * aspect
+            img_reader = ImageReader(BytesIO(image_data))
+        except Exception as exc:
+            raise ValueError(f"Invalid watermark image: {exc}") from exc
+
+    for idx, page in enumerate(reader.pages):
+        page_num = idx + 1
+        if idx == 0 and skip_first:
+            writer.add_page(page)
+            continue
+
+        is_odd = page_num % 2 != 0
+        if page_mode == "odd" and not is_odd:
+            writer.add_page(page)
+            continue
+        if page_mode == "even" and is_odd:
+            writer.add_page(page)
+            continue
+
+        page_w = float(page.mediabox.width)
+        page_h = float(page.mediabox.height)
+
+        overlay = BytesIO()
+        layer_cv = canvas.Canvas(overlay, pagesize=(page_w, page_h))
+        layer_cv.setFillAlpha(alpha)
+        layer_cv.setStrokeAlpha(alpha)
+        layer_cv.setFillColorRGB(*rgb)
+        layer_cv.setFont(registered_font, font_size)
+
+        def draw_mark(cv: canvas.Canvas) -> None:
+            if img_reader:
+                cv.drawImage(
+                    img_reader,
+                    -img_w / 2.0,
+                    -img_h / 2.0,
+                    width=img_w,
+                    height=img_h,
+                    mask="auto",
+                )
+            else:
+                cv.drawCentredString(0, -font_size / 3.0, text)
+
+        if position == "tiled":
+            cols, rows = 3, 3
+            step_x = page_w / float(cols)
+            step_y = page_h / float(rows)
+            for r in range(rows):
+                for c in range(cols):
+                    layer_cv.saveState()
+                    layer_cv.translate(step_x * (c + 0.5), step_y * (r + 0.5))
+                    layer_cv.rotate(angle)
+                    draw_mark(layer_cv)
+                    layer_cv.restoreState()
+        else:
+            cx = page_w / 2.0
+            if position == "top":
+                cy = page_h - 90.0
+            elif position == "bottom":
+                cy = 90.0
+            else:
+                cy = page_h / 2.0
+
+            layer_cv.saveState()
+            layer_cv.translate(cx, cy)
+            layer_cv.rotate(angle)
+            draw_mark(layer_cv)
+            layer_cv.restoreState()
+
+        layer_cv.save()
+        overlay.seek(0)
+        overlay_page = PdfReader(overlay).pages[0]
+        page.merge_page(overlay_page, over=(layer == "over"))
         writer.add_page(page)
 
     output = BytesIO()

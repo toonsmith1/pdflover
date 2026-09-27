@@ -119,6 +119,17 @@ def test_rotate():
     assert res.headers["content-type"] == "application/pdf"
 
 
+def test_rotate_per_page():
+    pdf = make_test_pdf("Rotate page 1")
+    res = client.post(
+        "/api/rotate",
+        files={"file": ("doc.pdf", pdf, "application/pdf")},
+        data={"rotations": json.dumps({"1": 180})},
+    )
+    assert res.status_code == 200
+    assert res.headers["content-type"] == "application/pdf"
+
+
 def test_crop():
     pdf = make_test_pdf("Crop me")
     res = client.post(
@@ -141,6 +152,23 @@ def test_pagenum():
             "format_style": "prefix",
             "skip_first": "false",
             "start_number": "1",
+        },
+    )
+    assert res.status_code == 200
+    assert res.headers["content-type"] == "application/pdf"
+
+
+def test_watermark():
+    pdf = make_test_pdf("Watermark page")
+    res = client.post(
+        "/api/watermark",
+        files={"file": ("doc.pdf", pdf, "application/pdf")},
+        data={
+            "text": "CONFIDENTIAL",
+            "angle": "45",
+            "opacity": "0.3",
+            "position": "center",
+            "layer": "over",
         },
     )
     assert res.status_code == 200
