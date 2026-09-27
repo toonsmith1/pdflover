@@ -82,22 +82,26 @@ def crop_pdf(data: bytes, left: float, bottom: float, right: float, top: float) 
     return output.getvalue()
 
 
-def add_text_pdf(data: bytes, text: str, x: float, y: float, size: float, font: str = "loma", color: str = "#222222") -> bytes:
-    if not text.strip() or size <= 0:
-        raise ValueError("text and a positive font size are required")
-    if font not in FONT_FILES or f"PDFLover-{font}" not in pdfmetrics.getRegisteredFontNames():
-        raise ValueError("unsupported font")
-    if not color.startswith("#") or len(color) != 7:
-        raise ValueError("color must be a hex value")
-    try: rgb = tuple(int(color[i:i + 2], 16) / 255 for i in (1, 3, 5))
-    except ValueError as exc: raise ValueError("color must be a hex value") from exc
+def add_text_pdf(data: bytes, text_items: list[dict]) -> bytes:
+    if not text_items:
+        raise ValueError("add at least one text item")
     reader = PdfReader(BytesIO(data))
     writer = PdfWriter()
     for page in reader.pages:
         overlay = BytesIO()
         layer = canvas.Canvas(overlay, pagesize=(float(page.mediabox.width), float(page.mediabox.height)))
-        layer.setFont(f"PDFLover-{font}", size); layer.setFillColorRGB(*rgb)
-        layer.drawString(x, y, text)
+        page_width, page_height = float(page.mediabox.width), float(page.mediabox.height)
+        for item in text_items:
+            text, x, y, size = str(item.get("text", "")), float(item.get("x", 0)), float(item.get("y", 0)), float(item.get("size", 16))
+            font, color = str(item.get("font", "loma")), str(item.get("color", "#222222"))
+            if not text.strip() or size <= 0 or font not in FONT_FILES or f"PDFLover-{font}" not in pdfmetrics.getRegisteredFontNames():
+                raise ValueError("invalid text item")
+            if not color.startswith("#") or len(color) != 7:
+                raise ValueError("color must be a hex value")
+            try: rgb = tuple(int(color[i:i + 2], 16) / 255 for i in (1, 3, 5))
+            except ValueError as exc: raise ValueError("color must be a hex value") from exc
+            layer.setFont(f"PDFLover-{font}", size); layer.setFillColorRGB(*rgb)
+            layer.drawString(x * page_width, y * page_height, text)
         layer.save()
         overlay.seek(0)
         page.merge_page(PdfReader(overlay).pages[0])

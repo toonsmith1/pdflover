@@ -8,6 +8,7 @@ from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pypdf import PdfReader
 import pypdfium2 as pdfium
+import json
 
 from .config import get_settings
 from .pdf_service import add_text_pdf, compress_pdf, crop_pdf, merge_pdfs, organize_pdf, rotate_pdf, split_pdf
@@ -108,11 +109,14 @@ async def crop(file: Annotated[UploadFile, File(...)], left: Annotated[float, Fo
 
 
 @app.post("/api/text")
-async def add_text(file: Annotated[UploadFile, File(...)], text: Annotated[str, Form(...)], x: Annotated[float, Form()] = 72, y: Annotated[float, Form()] = 72, size: Annotated[float, Form()] = 16, font: Annotated[str, Form()] = "loma", color: Annotated[str, Form()] = "#222222") -> Response:
+async def add_text(file: Annotated[UploadFile, File(...)], items: Annotated[str, Form(...)]) -> Response:
     data = await file.read(); check_file(file, data)
     try:
-        result = add_text_pdf(data, text, x, y, size, font, color)
-    except ValueError as exc:
+        parsed_items = json.loads(items)
+        if not isinstance(parsed_items, list) or len(parsed_items) > 500:
+            raise ValueError("text items must be a list with at most 500 entries")
+        result = add_text_pdf(data, parsed_items)
+    except (ValueError, TypeError, json.JSONDecodeError) as exc:
         raise HTTPException(400, str(exc)) from exc
     return Response(result, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="text-added.pdf"'})
 
