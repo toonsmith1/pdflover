@@ -1,17 +1,25 @@
+import json
 from io import BytesIO
 from pathlib import Path
 from typing import Annotated
 
+import pypdfium2 as pdfium
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pypdf import PdfReader
-import pypdfium2 as pdfium
-import json
 
 from .config import get_settings
-from .pdf_service import add_text_pdf, compress_pdf, crop_pdf, merge_pdfs, organize_pdf, rotate_pdf, split_pdf
+from .pdf_service import (
+    add_text_pdf,
+    compress_pdf,
+    crop_pdf,
+    merge_pdfs,
+    organize_pdf,
+    rotate_pdf,
+    split_pdf,
+)
 
 settings = get_settings()
 app = FastAPI(title="PDF Lover API", version="0.1.0")
@@ -114,7 +122,7 @@ async def add_text(file: Annotated[UploadFile, File(...)], items: Annotated[str,
     try:
         parsed_items = json.loads(items)
         if not isinstance(parsed_items, list):
-            raise ValueError("text items must be a list")
+            raise TypeError("text items must be a list")
         result = add_text_pdf(data, parsed_items)
     except (ValueError, TypeError, json.JSONDecodeError) as exc:
         raise HTTPException(400, str(exc)) from exc
@@ -145,16 +153,40 @@ async def compress(file: Annotated[UploadFile, File(...)], quality: Annotated[st
     return Response(result, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="compressed.pdf"'})
 
 
-frontend = Path(__file__).resolve().parent.parent / "frontend"
+dist_dir = Path(__file__).resolve().parent.parent / "dist"
+frontend_dir = Path(__file__).resolve().parent.parent / "frontend"
+static_dir = dist_dir if (dist_dir / "index.html").exists() else frontend_dir
 
 
-@app.get("/tool/{tool_name}")
+@app.api_route("/tool/{tool_name}", methods=["GET", "HEAD"])
 def tool_page(tool_name: str) -> FileResponse:
-    """Serve a dedicated tool document, separate from the home catalog."""
-    if tool_name not in {"compress", "split", "merge", "organize", "rotate", "crop", "text", "watermark", "pagenum", "signature", "ocr", "image", "image-pdf", "extract-text", "extract-table", "protect", "unlock", "redact"}:
+    """Serve dedicated tool document or React SPA bundle."""
+    if tool_name not in {
+        "compress",
+        "split",
+        "merge",
+        "organize",
+        "rotate",
+        "crop",
+        "text",
+        "watermark",
+        "pagenum",
+        "signature",
+        "ocr",
+        "image",
+        "image-pdf",
+        "extract-text",
+        "extract-table",
+        "protect",
+        "unlock",
+        "redact",
+    }:
         raise HTTPException(404, "Tool not found")
-    return FileResponse(frontend / "tool.html")
+    index_file = dist_dir / "index.html"
+    if index_file.exists():
+        return FileResponse(index_file)
+    return FileResponse(frontend_dir / "tool.html")
 
 
-if frontend.exists():
-    app.mount("/", StaticFiles(directory=frontend, html=True), name="frontend")
+if static_dir.exists():
+    app.mount("/", StaticFiles(directory=static_dir, html=True), name="frontend")

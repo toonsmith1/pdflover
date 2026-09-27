@@ -13,6 +13,7 @@ node_modules/
 dist/
 build/
 .vite/
+.node/
 
 # Local files and generated output
 *.pdf
@@ -31,3 +32,19 @@ outputs/
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
+
+# Monetization, Affiliate, and Version Configs (Private / Anti-tamper)
+*.local.json
+*.local.js
+*.secret.json
+partner.json
+ads.json
+version.json
+config/partner*.json
+config/ads*.json
+src/config/*.local.*
+src/data/*.local.*
+.secrets/
+secrets/
+private/
+*.private.*

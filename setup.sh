@@ -11,4 +11,10 @@ if [ ! -f .env ]; then
   echo "Created .env from .env.example; add your Typhoon OCR API key before using OCR."
 fi
 
+if command -v npm >/dev/null 2>&1; then
+  echo "Installing frontend dependencies and building React bundle..."
+  npm install
+  npm run build
+fi
+
 echo "Environment ready. Activate it with: source .venv/bin/activate"

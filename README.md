@@ -23,6 +23,10 @@ source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 cp .env.example .env
+
+# Build frontend (React + Vite)
+npm install
+npm run build
 ```
 
 Run the web app:
@@ -33,7 +37,13 @@ python -m uvicorn app.main:app --reload
 
 Then open <http://127.0.0.1:8000>.
 
-The current MVP has working local endpoints for compressing, splitting, merging, and rotating PDF files. The other catalog tools are visible in the UI and will be connected incrementally.
+During frontend development, you can also run Vite dev server with API proxying:
+
+```bash
+npm run dev
+```
+
+The current MVP has working local endpoints for compressing, splitting, merging, rotating, cropping, organizing, and adding text to PDF files. The other catalog tools are visible in the UI and will be connected incrementally.
 
 ## Development
 

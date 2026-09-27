@@ -4,9 +4,8 @@
 
 PDF Lover is an active local-first PDF toolbox MVP in `/home/kriangkrai/Documents/pdflover`.
 
-- Backend: FastAPI in `app/`; frontend: plain HTML, CSS, and JavaScript in `frontend/`.
+- Backend: FastAPI in `app/`; frontend: React 19 + Vite in `src/` (built to `dist/`, served by FastAPI with fallback to `frontend/`).
 - Main branch is `main`; GitHub remote is `git@github.com:toonsmith1/pdflover.git`.
-- At the start of this handoff, local and GitHub `main` were synchronized at `faf3d6d` (`feat: lay out PDF text editor workspace`).
 - `.env` and `.venv` are local and ignored. Never commit secrets, virtual environments, generated PDFs, or user uploads.
 - Check `git status` before editing and preserve any existing user changes.
 
@@ -19,6 +18,8 @@ PDF Lover is an active local-first PDF toolbox MVP in `/home/kriangkrai/Document
 5. Text editing supports multiple text items, each with editable Thai text, position, size, font, and color. All non-empty items are embedded in the generated PDF. The editor is a DOM/CSS overlay on a rendered PDF image.
 6. Keep the restrained Muji visual style, responsive layout, Thai UI labels, and lightweight frontend.
 7. OCR is intended to use the remote Typhoon OCR API. Do not add a large local OCR model or GPU-only dependency to default installation.
+8. Partner spotlight & monetization contract: Display native, clean recommendation card (e.g. Shopee affiliate / partner tools) on the homepage split hero. Must be bandwidth-efficient (<1 KB JSON manifest), cached for 24h, and automatically fallback to "Buy Me a Coffee ☕" when offline. Never use intrusive popups, tracking SDKs, or malware-like scripts. All private partner/ad configs remain git-ignored.
+9. Version update notification contract: Check for new releases via lightweight remote manifest (e.g. GitHub raw `version.json`), cached daily. Use non-intrusive UI indicators (titlebar version badge dot or dismissible banner). Silently skip when offline.
 
 ## Implemented PDF operations
 
@@ -26,16 +27,16 @@ The backend currently implements merge, split, compress, rotate, organize/reorde
 
 ## Important files
 
-- `app/main.py`: FastAPI API and page routes.
+- `app/main.py`: FastAPI API, static bundle serving, and SPA routes.
 - `app/pdf_service.py`: PDF transformations and Thai font embedding.
 - `app/config.py`: environment configuration.
-- `frontend/index.html`, `frontend/app.js`: home tool catalog.
-- `frontend/tool.html`, `frontend/tool.js`: shared tool shell and form behavior.
-- `frontend/upload-flow.js`: upload and settings stages.
-- `frontend/merge.js`: merge-specific upload, order, and preview flow.
-- `frontend/organize.js`: page reordering UI.
-- `frontend/text-preview.js`: image-based multi-text editor and processing stages.
-- `frontend/styles.css`: responsive UI and editor styles.
+- `src/App.jsx`, `src/main.jsx`: React entry and routing.
+- `src/components/ToolCatalog.jsx`: Home catalog page.
+- `src/components/ToolPage.jsx`: Tool layout shell.
+- `src/components/tools/`: Individual tool implementations (TextTool, MergeTool, OrganizeTool, CompressTool, SplitTool, RotateTool, CropTool, GenericTool).
+- `src/components/common/`: Reusable DropZone and PdfPreview components.
+- `src/styles.css`: CSS styling preserving Muji neutral aesthetics.
+- `package.json`, `vite.config.js`: Vite build tooling.
 - `requirements.txt`, `requirements-dev.txt`, `setup.sh`: dependencies and setup.
 
 ## Running the app

@@ -1,18 +1,23 @@
-from io import BytesIO
 import shutil
 import subprocess
 import tempfile
+from io import BytesIO
+from pathlib import Path
+
 import pikepdf
 from pypdf import PdfReader, PdfWriter
-from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase.ttfonts import TTFError, TTFont
+from reportlab.pdfgen import canvas
 
 THAI_FONT = "/usr/share/fonts/truetype/tlwg/Loma.ttf"
 FONT_FILES = {"loma": THAI_FONT, "krub": "/home/kriangkrai/.local/share/fonts/ThaiNational/TH Krub.ttf", "umpush": "/usr/share/fonts/truetype/tlwg/Umpush.ttf"}
 for font_name, font_path in FONT_FILES.items():
-    try: pdfmetrics.registerFont(TTFont(f"PDFLover-{font_name}", font_path))
-    except OSError: pass
+    if Path(font_path).is_file():
+        try:
+            pdfmetrics.registerFont(TTFont(f"PDFLover-{font_name}", font_path))
+        except (OSError, TTFError):
+            continue
 
 
 def merge_pdfs(files: list[bytes]) -> bytes:
@@ -94,14 +99,24 @@ def add_text_pdf(data: bytes, text_items: list[dict]) -> bytes:
         for item in text_items:
             text, x, y, size = str(item.get("text", "")), float(item.get("x", 0)), float(item.get("y", 0)), float(item.get("size", 16))
             font, color = str(item.get("font", "loma")), str(item.get("color", "#222222"))
-            if not text.strip() or size <= 0 or font not in FONT_FILES or f"PDFLover-{font}" not in pdfmetrics.getRegisteredFontNames():
-                raise ValueError("invalid text item")
+            font_name = f"PDFLover-{font}"
+            if font_name not in pdfmetrics.getRegisteredFontNames():
+                registered_fonts = [f for f in pdfmetrics.getRegisteredFontNames() if f.startswith("PDFLover-")]
+                if registered_fonts:
+                    font_name = registered_fonts[0]
+                else:
+                    raise ValueError("no thai font registered")
             if not color.startswith("#") or len(color) != 7:
                 raise ValueError("color must be a hex value")
             try: rgb = tuple(int(color[i:i + 2], 16) / 255 for i in (1, 3, 5))
             except ValueError as exc: raise ValueError("color must be a hex value") from exc
-            layer.setFont(f"PDFLover-{font}", size); layer.setFillColorRGB(*rgb)
-            layer.drawString(x * page_width, y * page_height, text)
+            layer.setFont(font_name, size)
+            layer.setFillColorRGB(*rgb)
+            lines = text.splitlines() or [text]
+            leading = size * 1.25
+            for line_idx, line in enumerate(lines):
+                line_y = y * page_height - (line_idx * leading)
+                layer.drawString(x * page_width, line_y, line)
         layer.save()
         overlay.seek(0)
         page.merge_page(PdfReader(overlay).pages[0])
