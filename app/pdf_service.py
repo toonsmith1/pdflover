@@ -55,6 +55,24 @@ def rotate_pdf(data: bytes, degrees: int) -> bytes:
     return output.getvalue()
 
 
+def crop_pdf(data: bytes, left: float, bottom: float, right: float, top: float) -> bytes:
+    if min(left, bottom, right, top) < 0:
+        raise ValueError("crop margins cannot be negative")
+    reader = PdfReader(BytesIO(data))
+    for page in reader.pages:
+        box = page.mediabox
+        if float(box.left) + left >= float(box.right) - right or float(box.bottom) + bottom >= float(box.top) - top:
+            raise ValueError("crop margins are larger than the page")
+        page.cropbox.lower_left = (float(box.left) + left, float(box.bottom) + bottom)
+        page.cropbox.upper_right = (float(box.right) - right, float(box.top) - top)
+    writer = PdfWriter()
+    for page in reader.pages:
+        writer.add_page(page)
+    output = BytesIO()
+    writer.write(output)
+    return output.getvalue()
+
+
 def compress_pdf(data: bytes, quality: str = "balanced") -> bytes:
     if quality not in {"low", "balanced", "high"}:
         raise ValueError("quality must be low, balanced, or high")

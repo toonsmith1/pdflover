@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from pypdf import PdfReader
 
 from .config import get_settings
-from .pdf_service import compress_pdf, merge_pdfs, organize_pdf, rotate_pdf, split_pdf
+from .pdf_service import compress_pdf, crop_pdf, merge_pdfs, organize_pdf, rotate_pdf, split_pdf
 
 settings = get_settings()
 app = FastAPI(title="PDF Lover API", version="0.1.0")
@@ -93,6 +93,17 @@ async def rotate(file: Annotated[UploadFile, File(...)], degrees: Annotated[int,
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc
     return Response(result, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="rotated.pdf"'})
+
+
+@app.post("/api/crop")
+async def crop(file: Annotated[UploadFile, File(...)], left: Annotated[float, Form()] = 0, bottom: Annotated[float, Form()] = 0, right: Annotated[float, Form()] = 0, top: Annotated[float, Form()] = 0) -> Response:
+    data = await file.read()
+    check_file(file, data)
+    try:
+        result = crop_pdf(data, left, bottom, right, top)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+    return Response(result, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="cropped.pdf"'})
 
 
 @app.post("/api/compress")
