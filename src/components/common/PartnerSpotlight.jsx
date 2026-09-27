@@ -54,6 +54,30 @@ export default function PartnerSpotlight({ variant = 'card' }) {
       // Ignore cache errors
     }
 
+    fetch('/api/ads')
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        const campaign = data?.campaigns?.[0];
+        if (!campaign) return;
+        setConfig((previous) => ({
+          ...previous,
+          enabled: true,
+          partner: {
+            ...previous.partner,
+            badge: campaign.badge || 'แนะนำจาก PDF Lover',
+            tag: campaign.tag || 'โฆษณาแนะนำ',
+            title: campaign.title || previous.partner.title,
+            desc: campaign.description || previous.partner.desc,
+            image: campaign.image || previous.partner.image,
+            price: campaign.price || '',
+            originalPrice: campaign.original_price || '',
+            buttonText: campaign.button_text || 'ดูรายละเอียด',
+            targetUrl: campaign.target_url || previous.partner.targetUrl,
+          },
+        }));
+      })
+      .catch(() => {});
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
