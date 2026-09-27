@@ -10,8 +10,17 @@
   const run = document.querySelector('#run');
   const resultPreview = document.querySelector('#preview');
   const stage = document.createElement('div'); stage.className = 'text-editor-stage';
-  stage.append(document.querySelector('#text-field'), pad, processNext);
+  const workspace = document.createElement('div'); workspace.className = 'text-workspace';
+  const toolbar = document.createElement('div'); toolbar.className = 'text-toolbar';
+  const toolLabel = document.createElement('span'); toolLabel.textContent = 'เพิ่มข้อความบนเอกสาร';
+  toolbar.append(toolLabel, addButton);
+  const editorMain = document.createElement('div'); editorMain.className = 'text-editor-main';
+  const canvasArea = document.createElement('div'); canvasArea.className = 'text-canvas-area'; canvasArea.append(pad);
+  const sidebar = document.createElement('aside'); sidebar.className = 'text-sidebar'; sidebar.append(document.querySelector('#text-field'));
+  editorMain.append(canvasArea, sidebar); workspace.append(toolbar, editorMain);
+  stage.append(workspace, processNext);
   document.querySelector('.upload-settings').append(stage);
+  document.body.classList.add('text-tool');
   let processing = false;
   run.hidden = true; resultPreview.hidden = true;
   processNext.hidden = false;

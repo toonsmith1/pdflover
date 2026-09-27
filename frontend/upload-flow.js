@@ -31,7 +31,7 @@
   const oldChange = picker.onchange;
   const paint = () => {
     document.body.classList.toggle('upload-editing', editing);
-    status.textContent = editing ? '02 / ตั้งค่าและดูตัวอย่าง' : '01 / เลือกเอกสาร';
+    status.textContent = !editing ? '01 / เลือกเอกสาร' : location.pathname.endsWith('/text') ? '02 / วางข้อความบนภาพเอกสาร' : '02 / ตั้งค่าและดูตัวอย่าง';
     drop.hidden = editing;
     next.hidden = editing;
     next.disabled = !picker.files.length;
