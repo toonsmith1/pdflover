@@ -62,3 +62,4 @@ body > main:not(.tool-page) .intro{margin-bottom:16px}
 body > main:not(.tool-page) h1{font-size:30px;line-height:1.25;margin:4px 0}
 body > main:not(.tool-page) .intro p{margin-top:4px}
 @media(max-width:700px){body > main:not(.tool-page){padding-top:18px}body > main:not(.tool-page) h1{font-size:27px}}
+ .page-order-grid{margin-top:1rem;padding:1rem;border:1px solid var(--line);background:#faf9f5}.page-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:.75rem;margin-top:.75rem}.page-card{display:grid;place-items:center;gap:.45rem;min-height:120px;border:1px solid var(--line);background:#fff;cursor:grab}.page-card:active{cursor:grabbing}.page-card.dragging{opacity:.45}.page-number{display:grid;place-items:center;width:52px;height:68px;border:1px solid #c9c4b8;background:#f8f7f2;font-size:1.25rem}

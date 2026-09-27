@@ -30,6 +30,18 @@ def split_pdf(data: bytes, pages: list[int]) -> bytes:
     return output.getvalue()
 
 
+def organize_pdf(data: bytes, order: list[int]) -> bytes:
+    reader = PdfReader(BytesIO(data))
+    if not order or sorted(order) != list(range(1, len(reader.pages) + 1)):
+        raise ValueError("order must contain every page exactly once")
+    writer = PdfWriter()
+    for page_number in order:
+        writer.add_page(reader.pages[page_number - 1])
+    output = BytesIO()
+    writer.write(output)
+    return output.getvalue()
+
+
 def rotate_pdf(data: bytes, degrees: int) -> bytes:
     if degrees not in {90, 180, 270}:
         raise ValueError("degrees must be 90, 180, or 270")

@@ -1,3 +1,4 @@
+from io import BytesIO
 from pathlib import Path
 from typing import Annotated
 
@@ -5,9 +6,10 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
+from pypdf import PdfReader
 
 from .config import get_settings
-from .pdf_service import compress_pdf, merge_pdfs, rotate_pdf, split_pdf
+from .pdf_service import compress_pdf, merge_pdfs, organize_pdf, rotate_pdf, split_pdf
 
 settings = get_settings()
 app = FastAPI(title="PDF Lover API", version="0.1.0")
@@ -58,6 +60,28 @@ async def split(file: Annotated[UploadFile, File(...)], pages: Annotated[str, Fo
     except (ValueError, TypeError) as exc:
         raise HTTPException(400, f"Invalid pages: {exc}") from exc
     return Response(result, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="split.pdf"'})
+
+
+@app.post("/api/organize")
+async def organize(file: Annotated[UploadFile, File(...)], order: Annotated[str, Form(...)]) -> Response:
+    data = await file.read()
+    check_file(file, data)
+    try:
+        selected = [int(value.strip()) for value in order.split(",") if value.strip()]
+        result = organize_pdf(data, selected)
+    except (ValueError, TypeError) as exc:
+        raise HTTPException(400, f"Invalid page order: {exc}") from exc
+    return Response(result, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="organized.pdf"'})
+
+
+@app.post("/api/pdf-info")
+async def pdf_info(file: Annotated[UploadFile, File(...)]) -> dict[str, int]:
+    data = await file.read()
+    check_file(file, data)
+    try:
+        return {"pages": len(PdfReader(BytesIO(data)).pages)}
+    except Exception as exc:
+        raise HTTPException(400, f"Could not read PDF: {exc}") from exc
 
 
 @app.post("/api/rotate")
