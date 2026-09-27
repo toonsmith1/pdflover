@@ -30,6 +30,8 @@ export default function SignatureTool() {
   // Signature image (drawn or uploaded)
   const [signatureDataUrl, setSignatureDataUrl] = useState('');
   const [signatureMode, setSignatureMode] = useState('draw'); // 'draw' | 'upload'
+  const [penWidth, setPenWidth] = useState(2.5);
+  const [penColor, setPenColor] = useState('#222222');
 
   // Placed signatures: [{ id, page, x, y, width, image }]
   const [placedSignatures, setPlacedSignatures] = useState([]);
@@ -135,11 +137,11 @@ export default function SignatureTool() {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = '#222222';
-    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = penColor;
+    ctx.lineWidth = penWidth;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-  }, []);
+  }, [penColor, penWidth]);
 
   useEffect(() => {
     if (step === 'draw') {
@@ -169,8 +171,8 @@ export default function SignatureTool() {
     const scaleY = canvas.height / rect.height;
     const currentPoint = { x: x * scaleX, y: y * scaleY };
 
-    ctx.strokeStyle = '#222222';
-    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = penColor;
+    ctx.lineWidth = penWidth;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.beginPath();
@@ -423,6 +425,33 @@ export default function SignatureTool() {
                   onTouchMove={handleDrawMove}
                   onTouchEnd={handleDrawEnd}
                 />
+              </div>
+              <div className="sig-pen-settings">
+                <span className="strip-label">ขนาดเส้น:</span>
+                <div className="size-selector">
+                  {[1.5, 2.5, 4, 6].map((w) => (
+                    <button
+                      key={w}
+                      type="button"
+                      className={`size-btn ${penWidth === w ? 'active' : ''}`}
+                      onClick={() => setPenWidth(w)}
+                    >
+                      {w <= 1.5 ? 'เบาบาง' : w <= 2.5 ? 'ปกติ' : w <= 4 ? 'หนา' : 'หนามาก'}
+                    </button>
+                  ))}
+                </div>
+                <span className="strip-label">สีหมึก:</span>
+                <div className="color-dots">
+                  {['#222222', '#1e3a8a', '#79352f', '#15803d'].map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      className={`color-dot ${penColor === c ? 'active' : ''}`}
+                      style={{ backgroundColor: c }}
+                      onClick={() => setPenColor(c)}
+                    />
+                  ))}
+                </div>
               </div>
               <div className="sig-draw-actions">
                 <button type="button" className="button small secondary" onClick={handleClearDraw}>
