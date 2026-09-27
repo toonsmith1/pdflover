@@ -140,10 +140,12 @@ async def pdf_thumbnails(file: Annotated[UploadFile, File(...)], max_pages: int 
         limit = min(total_pages, max(1, max_pages))
         thumbnails = []
         for i in range(limit):
-            bitmap = document[i].render(scale=0.5)
+            # Render a readable working preview; the UI may display thumbnails
+            # larger than their grid cell when selecting/redacting content.
+            bitmap = document[i].render(scale=1.0)
             image = bitmap.to_pil()
             output = BytesIO()
-            image.save(output, format="JPEG", quality=75)
+            image.save(output, format="JPEG", quality=90, optimize=True)
             b64 = base64.b64encode(output.getvalue()).decode("ascii")
             thumbnails.append(f"data:image/jpeg;base64,{b64}")
         return {
