@@ -9,3 +9,4 @@ pillow>=11,<12
 pypdfium2>=4.30,<5
 python-dotenv>=1.0,<2
 pydantic-settings>=2.7,<3
+reportlab>=4.2,<5

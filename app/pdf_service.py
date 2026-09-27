@@ -4,6 +4,7 @@ import subprocess
 import tempfile
 import pikepdf
 from pypdf import PdfReader, PdfWriter
+from reportlab.pdfgen import canvas
 
 
 def merge_pdfs(files: list[bytes]) -> bytes:
@@ -71,6 +72,23 @@ def crop_pdf(data: bytes, left: float, bottom: float, right: float, top: float) 
     output = BytesIO()
     writer.write(output)
     return output.getvalue()
+
+
+def add_text_pdf(data: bytes, text: str, x: float, y: float, size: float) -> bytes:
+    if not text.strip() or size <= 0:
+        raise ValueError("text and a positive font size are required")
+    reader = PdfReader(BytesIO(data))
+    writer = PdfWriter()
+    for page in reader.pages:
+        overlay = BytesIO()
+        layer = canvas.Canvas(overlay, pagesize=(float(page.mediabox.width), float(page.mediabox.height)))
+        layer.setFont("Helvetica", size)
+        layer.drawString(x, y, text)
+        layer.save()
+        overlay.seek(0)
+        page.merge_page(PdfReader(overlay).pages[0])
+        writer.add_page(page)
+    output = BytesIO(); writer.write(output); return output.getvalue()
 
 
 def compress_pdf(data: bytes, quality: str = "balanced") -> bytes:
