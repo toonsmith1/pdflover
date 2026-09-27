@@ -6,6 +6,27 @@
   const itemsEl = document.querySelector('#text-items');
   const overlay = document.querySelector('#text-overlay');
   const addButton = document.querySelector('#text-add');
+  const processNext = document.querySelector('#text-process-next');
+  const run = document.querySelector('#run');
+  const resultPreview = document.querySelector('#preview');
+  const stage = document.createElement('div'); stage.className = 'text-editor-stage';
+  stage.append(document.querySelector('#text-field'), pad, processNext);
+  document.querySelector('.upload-settings').append(stage);
+  let processing = false;
+  run.hidden = true; resultPreview.hidden = true;
+  processNext.hidden = false;
+  processNext.addEventListener('click', () => {
+    if (!items.some(item => item.text.trim())) { document.querySelector('#message').textContent = 'เพิ่มข้อความอย่างน้อยหนึ่งรายการก่อนประมวลผล'; return; }
+    processing = true; stage.hidden = true; processNext.hidden = true; run.hidden = false;
+    run.textContent = 'ประมวลผลและแสดง PDF'; resultPreview.hidden = true;
+    document.querySelector('.merge-step').textContent = '03 / ประมวลผล PDF';
+    document.querySelector('#message').textContent = 'กดปุ่มด้านล่างเพื่อฝังข้อความทั้งหมดลงใน PDF';
+    run.scrollIntoView({behavior:'smooth',block:'center'});
+  });
+  const backToEditor = document.createElement('button'); backToEditor.type = 'button'; backToEditor.className = 'back-to-text-editor'; backToEditor.textContent = '← กลับไปแก้ข้อความ';
+  backToEditor.addEventListener('click', () => { processing = false; resultPreview.hidden = true; stage.hidden = false; run.hidden = true; processNext.hidden = false; document.querySelector('.merge-step').textContent = '02 / วางข้อความบนภาพเอกสาร'; });
+  document.querySelector('.preview-head').prepend(backToEditor);
+  window.pdfTextEditor = {getItems: () => items.filter(item=>item.text.trim()).map(({text,x,y,size,font,color})=>({text,x,y:1-y,size,font,color})),get processing(){return processing;}};
   const items = [];
   let imageUrl = '', activeId = null;
   const fonts = [['loma','Loma'],['krub','TH Krub'],['umpush','Umpush']];
@@ -46,12 +67,12 @@
   addButton.addEventListener('click', addItem); addItem();
   picker.addEventListener('change', async () => {
     if (!picker.files[0]) return;
+    processNext.disabled = true; image.hidden = true;
     const body = new FormData(); body.append('file',picker.files[0]);
     try {
       const response = await fetch('/api/render-preview',{method:'POST',body}); if (!response.ok) throw new Error('สร้างภาพตัวอย่างไม่ได้');
-      if (imageUrl) URL.revokeObjectURL(imageUrl); imageUrl = URL.createObjectURL(await response.blob()); image.onload = () => { document.querySelector('#text-position-pad > span:first-child').hidden = true; draw(); }; image.onerror = () => { image.hidden = true; document.querySelector('#text-position-pad > span:first-child').textContent = 'อ่านภาพตัวอย่างไม่ได้ กรุณาลองบันทึก PDF ใหม่'; }; image.hidden = false; image.src = imageUrl;
+      if (imageUrl) URL.revokeObjectURL(imageUrl); imageUrl = URL.createObjectURL(await response.blob()); image.onload = () => { image.hidden = false; processNext.disabled = false; document.querySelector('#text-position-pad > span:first-child').hidden = true; draw(); }; image.onerror = () => { image.hidden = true; document.querySelector('#text-position-pad > span:first-child').textContent = 'อ่านภาพตัวอย่างไม่ได้ กรุณาลองบันทึก PDF ใหม่'; }; image.src = imageUrl;
     } catch(error) { document.querySelector('#message').textContent = error.message; }
   });
-  window.pdfTextEditor = {getItems: () => items.filter(item=>item.text.trim()).map(({text,x,y,size,font,color})=>({text,x,y:1-y,size,font,color}))};
   window.addEventListener('pagehide',()=>{if(imageUrl)URL.revokeObjectURL(imageUrl);});
 })();

@@ -36,7 +36,7 @@
     next.hidden = editing;
     next.disabled = !picker.files.length;
     settings.hidden = !editing;
-    preview.hidden = !editing || location.pathname.endsWith('/text');
+    preview.hidden = !editing || (location.pathname.endsWith('/text') && !window.pdfTextEditor?.processing);
     back.hidden = !editing;
   };
   next.addEventListener('click', () => {
