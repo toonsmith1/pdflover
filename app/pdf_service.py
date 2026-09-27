@@ -5,6 +5,15 @@ import tempfile
 import pikepdf
 from pypdf import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+
+THAI_FONT = "/usr/share/fonts/truetype/tlwg/Loma.ttf"
+try:
+    pdfmetrics.registerFont(TTFont("PDFLoverThai", THAI_FONT))
+    TEXT_FONT = "PDFLoverThai"
+except OSError:
+    TEXT_FONT = "Helvetica"
 
 
 def merge_pdfs(files: list[bytes]) -> bytes:
@@ -82,7 +91,7 @@ def add_text_pdf(data: bytes, text: str, x: float, y: float, size: float) -> byt
     for page in reader.pages:
         overlay = BytesIO()
         layer = canvas.Canvas(overlay, pagesize=(float(page.mediabox.width), float(page.mediabox.height)))
-        layer.setFont("Helvetica", size)
+        layer.setFont(TEXT_FONT, size)
         layer.drawString(x, y, text)
         layer.save()
         overlay.seek(0)
