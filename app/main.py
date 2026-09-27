@@ -1,5 +1,6 @@
 import base64
 import json
+import zipfile
 from io import BytesIO
 from pathlib import Path
 from typing import Annotated, Any
@@ -146,6 +147,28 @@ async def pdf_thumbnails(file: Annotated[UploadFile, File(...)], max_pages: int 
         }
     except Exception as exc:
         raise HTTPException(400, f"Could not generate thumbnails: {exc}") from exc
+
+
+@app.post("/api/pdf-to-images")
+async def pdf_to_images(file: Annotated[UploadFile, File(...)], pages: Annotated[str | None, Form()] = None) -> Response:
+    data = await file.read()
+    check_file(file, data)
+    try:
+        document = pdfium.PdfDocument(data)
+        selected = parse_page_selection(pages) if pages else list(range(1, len(document) + 1))
+        if not selected:
+            raise ValueError("No pages specified")
+        output = BytesIO()
+        with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as archive:
+            for page_number in selected:
+                if page_number < 1 or page_number > len(document):
+                    raise ValueError(f"Page {page_number} is outside the document")
+                image = document[page_number - 1].render(scale=2).to_pil()
+                image_buffer = BytesIO(); image.save(image_buffer, format="PNG")
+                archive.writestr(f"page-{page_number:04d}.png", image_buffer.getvalue())
+        return Response(output.getvalue(), media_type="application/zip", headers={"Content-Disposition": 'attachment; filename="pdf-images.zip"'})
+    except Exception as exc:
+        raise HTTPException(400, f"Could not convert PDF to images: {exc}") from exc
 
 
 @app.post("/api/rotate")

@@ -13,6 +13,7 @@ import PageNumTool from './tools/PageNumTool';
 import WatermarkTool from './tools/WatermarkTool';
 import SignatureTool from './tools/SignatureTool';
 import GenericTool from './tools/GenericTool';
+import ImageTool from './tools/ImageTool';
 
 export default function ToolPage() {
   const { toolId } = useParams();
@@ -60,6 +61,8 @@ export default function ToolPage() {
         return <WatermarkTool />;
       case 'signature':
         return <SignatureTool />;
+      case 'image':
+        return <ImageTool />;
       default:
         return <GenericTool toolId={toolId} />;
     }
