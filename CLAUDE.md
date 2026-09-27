@@ -10,6 +10,10 @@ Seven PDF operations currently have backend implementations: merge, split, compr
 
 ## Most recent UX work
 
+## Non-negotiable interaction rule
+
+Never collapse upload, editing/selection, processing, and download into one automatic action. For tools involving pages or document content, the user must see an input preview or editor, make or review their choices, explicitly start processing, and then see the generated result before downloading. Preserve this staged workflow when adding new tools; a quick endpoint implementation is incomplete if the UI skips the review stage.
+
 The add-text tool now follows this flow:
 
 1. Select one PDF.

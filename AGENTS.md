@@ -11,6 +11,10 @@ PDF Lover is an active local-first PDF toolbox MVP in `/home/kriangkrai/Document
 
 ## Product and UX contract
 
+### Required staged workflow
+
+Do not shortcut a document tool from upload directly to processing when the user needs to choose, edit, arrange, crop, place, or inspect content. Such tools must show an intermediate preview/editor stage first, let the user review the selected pages and settings, and only then process. After processing, show the result preview before download. This applies to page selection, image conversion, text, notes, signatures, watermark, page numbers, crop, rotate, split, organize, merge, and similar tools. If a tool has no meaningful editable state, still show the input preview and a clear processing action.
+
 1. Keep one route/page per tool: `/tool/<tool_name>`.
 2. Most tools use a separate file-selection step followed by tool settings and preview.
 3. Merge accepts files across repeated selections, shows a responsive grid, supports reorder, individual preview, removal, add-more, and merge.

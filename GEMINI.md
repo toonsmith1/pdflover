@@ -14,6 +14,10 @@ Implemented PDF operations: merge, split, compress, rotate, organize/reorder, cr
 
 ## Text editor behavior
 
+## Required workflow for every document tool
+
+Do not implement a bare upload-and-process flow for tools where the user can select pages, place content, edit, reorder, crop, rotate, annotate, or otherwise affect the document. Show an input preview/editor first, require an explicit processing action, then show the generated output preview before download. Apply the same rule to future tools such as PDF-to-image: thumbnail selection and review must happen before conversion.
+
 The add-text tool uses a page image rendered from the selected PDF (`/api/render-preview`). Users can add multiple text boxes, edit Thai/English text, move them with the mouse, change each item's size/font/color, and remove items. The next stage submits all non-empty items to Python (`/api/text` with `y: 1 - y` inversion), embeds them into the PDF, then displays the generated PDF for inspection and download. The original PDF viewer is not displayed during placement on the image.
 
 ## Frontend architecture (React + Vite)
