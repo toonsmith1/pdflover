@@ -4651,6 +4651,14 @@ footer {
   border-radius: 999px;
 }
 
+/* Signature page image - clickable (no pointer-events:none) */
+.sig-base-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  cursor: copy;
+}
+
 /* Placed signature overlay */
 .sig-placed {
   position: absolute;

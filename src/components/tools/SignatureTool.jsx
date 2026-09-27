@@ -575,10 +575,9 @@ export default function SignatureTool() {
                   key={`page-${currentPage}-${pageImages[currentPage]}`}
                   src={pageImages[currentPage]}
                   alt={`หน้า ${currentPage}`}
-                  className="note-base-img"
+                  className="sig-base-img"
                   draggable={false}
                   onClick={handlePlaceSignature}
-                  style={{ cursor: 'copy' }}
                   onError={() => {
                     if (file) loadPageImage(file, currentPage, true);
                   }}
