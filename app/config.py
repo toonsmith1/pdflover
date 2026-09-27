@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     temp_file_ttl_minutes: int = 60
     typhoon_ocr_api_key: str = ""
     typhoon_ocr_base_url: str = ""
+    ads_admin_token: str = ""
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

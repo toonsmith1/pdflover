@@ -7,7 +7,7 @@ from typing import Annotated, Any
 
 import pypdfium2 as pdfium
 from pythainlp.util import normalize
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -15,6 +15,7 @@ from pypdf import PdfReader
 import pdfplumber
 
 from .config import get_settings
+from .ads_service import delete_campaign, get_campaign, list_campaigns, save_campaign, token_matches
 from .pdf_service import (
     add_notes_pdf,
     add_page_numbers_pdf,
@@ -53,6 +54,45 @@ def check_file(upload: UploadFile, data: bytes) -> None:
 @app.get("/api/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "ocr": "configured" if settings.typhoon_ocr_api_key else "api-key-required"}
+
+
+@app.get("/api/ads")
+def public_ads() -> dict[str, Any]:
+    """Return only enabled campaigns for public ad placements."""
+    campaigns = [item for item in list_campaigns() if item.get("enabled", False)]
+    return {"campaigns": campaigns}
+
+
+def require_ads_admin(token: str | None) -> None:
+    if not token_matches(token, settings.ads_admin_token):
+        raise HTTPException(401, "Ads admin authentication required")
+
+
+@app.get("/api/admin/ads")
+def admin_ads(x_ads_admin_token: Annotated[str | None, Header()] = None) -> dict[str, Any]:
+    require_ads_admin(x_ads_admin_token)
+    return {"campaigns": list_campaigns()}
+
+
+@app.put("/api/admin/ads/{campaign_id}")
+async def admin_save_ad(campaign_id: str, payload: dict[str, Any], x_ads_admin_token: Annotated[str | None, Header()] = None) -> dict[str, Any]:
+    require_ads_admin(x_ads_admin_token)
+    try:
+        return save_campaign(campaign_id, payload)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+
+@app.delete("/api/admin/ads/{campaign_id}")
+def admin_delete_ad(campaign_id: str, x_ads_admin_token: Annotated[str | None, Header()] = None) -> dict[str, bool]:
+    require_ads_admin(x_ads_admin_token)
+    try:
+        deleted = delete_campaign(campaign_id)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+    if not deleted:
+        raise HTTPException(404, "Campaign not found")
+    return {"deleted": True}
 
 
 @app.post("/api/merge")

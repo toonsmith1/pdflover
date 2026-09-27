@@ -1,0 +1,12 @@
+{
+  "id": "example",
+  "enabled": false,
+  "placement": "download",
+  "title": "ตัวอย่างโฆษณา",
+  "description": "แก้ไขไฟล์นี้ผ่าน API ผู้ดูแลระบบ",
+  "image": "",
+  "button_text": "ดูรายละเอียด",
+  "target_url": "https://example.com",
+  "starts_at": null,
+  "ends_at": null
+}
