@@ -7,7 +7,8 @@ import {
   Minus,
   ZoomIn,
   ZoomOut,
-  Maximize,
+  Maximize2,
+  Minimize2,
   ArrowLeft,
   ArrowRight,
   Layers,
@@ -39,6 +40,7 @@ export default function TextTool() {
   const [loadingImage, setLoadingImage] = useState(false);
   const [baseImageScale, setBaseImageScale] = useState(1);
   const [zoomLevel, setZoomLevel] = useState(1); // 0.8, 1, 1.25, 1.5
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [items, setItems] = useState([]);
   const [activeId, setActiveId] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -207,18 +209,39 @@ export default function TextTool() {
 
   // Keyboard shortcut (Escape to deselect)
   useEffect(() => {
+    if (isFullscreen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isFullscreen]);
+
+  useEffect(() => {
     const handleKeyDown = (e) => {
       if (stage !== 'place') return;
       if (e.key === 'Escape') {
-        setActiveId(null);
-        setEditingInlineId(null);
+        if (editingInlineId) {
+          setEditingInlineId(null);
+        } else if (activeId) {
+          setActiveId(null);
+        } else if (isFullscreen) {
+          setIsFullscreen(false);
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [stage]);
+  }, [stage, editingInlineId, activeId, isFullscreen]);
+
+  const toggleFullscreen = () => {
+    setIsFullscreen((prev) => !prev);
+  };
 
   const handleGoToProcess = () => {
+    setIsFullscreen(false);
     const validItems = items.filter((item) => item.text.trim());
     if (validItems.length === 0) {
       setMessage('กรุณาเพิ่มข้อความอย่างน้อยหนึ่งรายการก่อนประมวลผล');
@@ -287,31 +310,43 @@ export default function TextTool() {
         </p>
 
         {stage === 'place' && (
-          <div className="canvas-zoom-controls">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="canvas-zoom-controls">
+              <button
+                type="button"
+                className="zoom-btn"
+                onClick={() => setZoomLevel((z) => Math.max(0.6, z - 0.15))}
+                title="ย่อขนาดแสดงผล"
+              >
+                <ZoomOut size={13} />
+              </button>
+              <span className="zoom-text">{Math.round(zoomLevel * 100)}%</span>
+              <button
+                type="button"
+                className="zoom-btn"
+                onClick={() => setZoomLevel((z) => Math.min(2.0, z + 0.15))}
+                title="ขยายขนาดแสดงผล"
+              >
+                <ZoomIn size={13} />
+              </button>
+              <button
+                type="button"
+                className="zoom-btn"
+                onClick={() => setZoomLevel(1)}
+                title="คืนค่า 100%"
+              >
+                <RotateCcw size={12} />
+              </button>
+            </div>
+
             <button
               type="button"
-              className="zoom-btn"
-              onClick={() => setZoomLevel((z) => Math.max(0.7, z - 0.15))}
-              title="ย่อขนาดแสดงผล"
+              className={`button small ${isFullscreen ? 'primary' : 'secondary'} fullscreen-toggle-btn`}
+              onClick={toggleFullscreen}
+              title={isFullscreen ? 'ย่อขนาดกลับปกติ (Esc)' : 'ขยายเต็มหน้าจอ'}
             >
-              <ZoomOut size={13} />
-            </button>
-            <span className="zoom-text">{Math.round(zoomLevel * 100)}%</span>
-            <button
-              type="button"
-              className="zoom-btn"
-              onClick={() => setZoomLevel((z) => Math.min(1.6, z + 0.15))}
-              title="ขยายขนาดแสดงผล"
-            >
-              <ZoomIn size={13} />
-            </button>
-            <button
-              type="button"
-              className="zoom-btn"
-              onClick={() => setZoomLevel(1)}
-              title="คืนค่า 100%"
-            >
-              <Maximize size={12} />
+              {isFullscreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+              <span>{isFullscreen ? 'ย่อขนาด (Esc)' : 'ขยายเต็มจอ'}</span>
             </button>
           </div>
         )}
@@ -350,7 +385,7 @@ export default function TextTool() {
       {/* STAGE 2: Interactive Desktop Studio WYSIWYG Editor */}
       {stage === 'place' && (
         <div className="text-editor-stage">
-          <div className="text-workspace">
+          <div className={`text-workspace ${isFullscreen ? 'is-fullscreen' : ''}`}>
             {/* Studio Contextual Property Toolbar */}
             <div className="text-toolbar">
               <button
@@ -475,6 +510,60 @@ export default function TextTool() {
                   💡 คลิกเลือกข้อความบนเอกสาร หรือคลิกบนผืนกระดาษเพื่อวางข้อความใหม่
                 </span>
               )}
+
+              {/* Right Toolbar Actions (Zoom & Fullscreen) */}
+              <div
+                className="text-toolbar-right"
+                style={{
+                  marginLeft: 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
+                <div className="canvas-zoom-controls">
+                  <button
+                    type="button"
+                    className="zoom-btn"
+                    onClick={() => setZoomLevel((z) => Math.max(0.6, z - 0.15))}
+                    title="ย่อขนาด"
+                  >
+                    <ZoomOut size={13} />
+                  </button>
+                  <span className="zoom-text">{Math.round(zoomLevel * 100)}%</span>
+                  <button
+                    type="button"
+                    className="zoom-btn"
+                    onClick={() => setZoomLevel((z) => Math.min(2.0, z + 0.15))}
+                    title="ขยายขนาด"
+                  >
+                    <ZoomIn size={13} />
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  className={`button small ${isFullscreen ? 'primary' : 'secondary'} fullscreen-btn`}
+                  onClick={toggleFullscreen}
+                  title={isFullscreen ? 'ย่อขนาดกลับปกติ (Esc)' : 'ขยายเต็มหน้าจอ'}
+                >
+                  {isFullscreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+                  <span>{isFullscreen ? 'ย่อขนาด (Esc)' : 'ขยายเต็มจอ'}</span>
+                </button>
+
+                {isFullscreen && (
+                  <button
+                    type="button"
+                    className="button small primary"
+                    onClick={handleGoToProcess}
+                    style={{ marginLeft: '4px' }}
+                    title="ไปขั้นตอนประมวลผล PDF"
+                  >
+                    <span>ไปประมวลผล</span>
+                    <ArrowRight size={13} />
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Studio Canvas Area & Layers Inspector */}

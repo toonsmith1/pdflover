@@ -866,6 +866,38 @@ body.preview-expanded {
   border-radius: var(--radius);
   box-shadow: 0 4px 20px rgba(70, 58, 42, 0.03);
   overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.text-workspace.is-fullscreen {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  min-height: 100vh;
+  z-index: 9999;
+  border-radius: 0;
+  border: 0;
+  background: var(--card);
+  box-shadow: none;
+}
+
+.text-workspace.is-fullscreen .text-toolbar {
+  padding: 10px 24px;
+  background: #faf8f5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.text-workspace.is-fullscreen .text-canvas-area {
+  padding: 36px;
+  height: 100%;
+}
+
+.text-workspace.is-fullscreen #text-page-image {
+  max-height: 88vh;
 }
 
 .text-toolbar {
@@ -1469,6 +1501,24 @@ footer {
   padding-inline: 6px;
   min-width: 44px;
   text-align: center;
+}
+
+.fullscreen-toggle-btn,
+.fullscreen-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.fullscreen-toggle-btn.active,
+.fullscreen-btn.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
 }
 
 .swatch-btn {
