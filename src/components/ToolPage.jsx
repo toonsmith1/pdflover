@@ -16,6 +16,7 @@ import GenericTool from './tools/GenericTool';
 import ImageTool from './tools/ImageTool';
 import ImagePdfTool from './tools/ImagePdfTool';
 import ExtractTextTool from './tools/ExtractTextTool';
+import ExtractTableTool from './tools/ExtractTableTool';
 
 export default function ToolPage() {
   const { toolId } = useParams();
@@ -69,6 +70,8 @@ export default function ToolPage() {
         return <ImagePdfTool />;
       case 'extract-text':
         return <ExtractTextTool />;
+      case 'extract-table':
+        return <ExtractTableTool />;
       default:
         return <GenericTool toolId={toolId} />;
     }

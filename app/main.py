@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pypdf import PdfReader
+import pdfplumber
 
 from .config import get_settings
 from .pdf_service import (
@@ -203,6 +204,32 @@ async def extract_text(file: Annotated[UploadFile, File(...)]) -> Response:
         return Response(content, media_type="text/plain; charset=utf-8", headers={"Content-Disposition": 'attachment; filename="extracted-text.txt"'})
     except Exception as exc:
         raise HTTPException(400, f"Could not extract text: {exc}") from exc
+
+
+@app.post("/api/extract-table")
+async def extract_table(file: Annotated[UploadFile, File(...)], pages: Annotated[str | None, Form()] = None) -> dict[str, Any]:
+    """Extract the first usable table from each selected PDF page for review in the UI."""
+    data = await file.read(); check_file(file, data)
+    try:
+        selected = parse_page_selection(pages) if pages else None
+        tables: list[dict[str, Any]] = []
+        with pdfplumber.open(BytesIO(data)) as pdf:
+            page_numbers = selected or list(range(1, len(pdf.pages) + 1))
+            for page_number in page_numbers:
+                if page_number < 1 or page_number > len(pdf.pages):
+                    raise ValueError(f"Page {page_number} is outside the document")
+                page = pdf.pages[page_number - 1]
+                found = page.extract_tables()
+                for table_index, rows in enumerate(found, 1):
+                    cleaned = [[(cell or "").strip() for cell in row] for row in rows]
+                    cleaned = [row for row in cleaned if any(cell for cell in row)]
+                    if cleaned:
+                        width = max(len(row) for row in cleaned)
+                        normalized = [row + [""] * (width - len(row)) for row in cleaned]
+                        tables.append({"page": page_number, "table": table_index, "rows": normalized})
+        return {"tables": tables, "count": len(tables)}
+    except Exception as exc:
+        raise HTTPException(400, f"Could not extract tables: {exc}") from exc
 
 
 @app.post("/api/rotate")
