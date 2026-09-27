@@ -4694,6 +4694,9 @@ footer {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 2px;
 }
+.sig-size-control { display:flex; align-items:center; gap:6px; padding:4px 8px; color:var(--ink); background:#fff; border:1px solid var(--line); font-size:11px; white-space:nowrap; }
+.sig-size-control span { min-width:48px; }
+.sig-size-control input { width:92px; padding:0; }
 
 .sig-ctrl-btn {
   width: 24px;

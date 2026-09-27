@@ -632,6 +632,17 @@ export default function SignatureTool() {
                   <img src={sig.image} alt="ลายเซ็น" draggable={false} />
                   {activeSignatureId === sig.id && (
                     <div className="sig-controls">
+                      <label className="sig-size-control" onPointerDown={(e) => e.stopPropagation()}>
+                        <span>ขนาด {Math.round(sig.width * 100)}%</span>
+                        <input
+                          type="range"
+                          min="8"
+                          max="60"
+                          step="1"
+                          value={Math.round(sig.width * 100)}
+                          onChange={(e) => setPlacedSignatures((prev) => prev.map((s) => s.id === sig.id ? { ...s, width: Number(e.target.value) / 100 } : s))}
+                        />
+                      </label>
                       <button
                         type="button"
                         className="sig-ctrl-btn"
