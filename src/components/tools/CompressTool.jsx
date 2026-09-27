@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import DropZone from '../common/DropZone';
 import PdfPreview from '../common/PdfPreview';
+import DownloadScreen from '../common/DownloadScreen';
 
 export default function CompressTool() {
   const [file, setFile] = useState(null);
-  const [step, setStep] = useState('select'); // 'select' | 'configure'
+  const [step, setStep] = useState('select'); // 'select' | 'configure' | 'download'
   const [quality, setQuality] = useState('balanced');
   const [processing, setProcessing] = useState(false);
   const [message, setMessage] = useState('');
@@ -43,7 +44,8 @@ export default function CompressTool() {
       if (resultUrl) URL.revokeObjectURL(resultUrl);
       const url = URL.createObjectURL(blob);
       setResultUrl(url);
-      setMessage('ประมวลผลเสร็จแล้ว แสดงตัวอย่างก่อนดาวน์โหลด');
+      setStep('download');
+      setMessage('บีบอัดไฟล์เรียบร้อยแล้ว');
     } catch (err) {
       setMessage(`เกิดข้อผิดพลาด: ${err.message}`);
     } finally {
@@ -54,10 +56,30 @@ export default function CompressTool() {
   return (
     <div className="panel">
       <p className="merge-step">
-        {step === 'select' ? '01 / เลือกเอกสาร' : '02 / ตั้งค่าและดูตัวอย่าง'}
+        {step === 'select'
+          ? '01 / เลือกเอกสาร'
+          : step === 'configure'
+          ? '02 / ตั้งค่าระดับการบีบอัด'
+          : '03 / ดาวน์โหลดเอกสาร'}
       </p>
 
-      {step === 'select' ? (
+      {step === 'download' && resultUrl ? (
+        <DownloadScreen
+          downloadUrl={resultUrl}
+          filename={`compressed_${file?.name || 'document.pdf'}`}
+          title="ลดขนาดไฟล์ PDF สำเร็จแล้ว!"
+          subtitle="ไฟล์ถูกบีบอัดให้มีขนาดเล็กลงอย่างมีประสิทธิภาพ พร้อมดาวน์โหลด"
+          onBack={() => setStep('configure')}
+          backLabel="← กลับไปปรับแต่ง"
+          onReset={() => {
+            setStep('select');
+            setFile(null);
+            setResultUrl('');
+            setMessage('');
+          }}
+          resetLabel="บีบอัดไฟล์ใหม่"
+        />
+      ) : step === 'select' ? (
         <div className="tool-controls">
           <DropZone
             onFilesSelected={handleFile}
@@ -103,16 +125,15 @@ export default function CompressTool() {
               id="run"
               disabled={processing}
             >
-              {processing ? 'กำลังประมวลผล…' : resultUrl ? 'ประมวลผลอีกครั้ง' : 'เริ่มประมวลผล'}
+              {processing ? 'กำลังประมวลผล…' : 'เริ่มประมวลผล'}
             </button>
 
-            {message && <p className={`message ${resultUrl ? 'success' : ''}`}>{message}</p>}
+            {message && <p className="message">{message}</p>}
           </div>
 
           <PdfPreview
-            previewUrl={resultUrl || sourcePreviewUrl}
-            downloadFilename={resultUrl ? 'compressed.pdf' : null}
-            metaText={resultUrl ? 'ผลลัพธ์พร้อมตรวจสอบ' : 'ตัวอย่างไฟล์ต้นฉบับ'}
+            previewUrl={sourcePreviewUrl}
+            metaText="ตัวอย่างไฟล์ต้นฉบับ"
           />
         </form>
       )}

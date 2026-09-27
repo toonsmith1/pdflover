@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import DropZone from '../common/DropZone';
 import PdfPreview from '../common/PdfPreview';
+import DownloadScreen from '../common/DownloadScreen';
 
 const FONTS = [
   { value: 'loma', label: 'Loma' },
@@ -259,7 +260,8 @@ export default function TextTool() {
       if (resultUrl) URL.revokeObjectURL(resultUrl);
       const url = URL.createObjectURL(blob);
       setResultUrl(url);
-      setMessage('ประมวลผลเสร็จแล้ว แสดงตัวอย่างก่อนดาวน์โหลด');
+      setStage('download');
+      setMessage('ฝังข้อความลงในเอกสารเรียบร้อยแล้ว');
     } catch (err) {
       setMessage(`เกิดข้อผิดพลาด: ${err.message}`);
     } finally {
@@ -280,7 +282,8 @@ export default function TextTool() {
         <p className="merge-step">
           {stage === 'select' && '01 / เลือกเอกสาร PDF'}
           {stage === 'place' && '02 / สตูดิโอจัดวางและพิมพ์ข้อความ'}
-          {stage === 'process' && '03 / ประมวลผลและตรวจสอบ PDF'}
+          {stage === 'process' && '03 / ประมวลผลเอกสาร'}
+          {stage === 'download' && '03 / เอกสารพร้อมดาวน์โหลด'}
         </p>
 
         {stage === 'place' && (
@@ -640,7 +643,7 @@ export default function TextTool() {
         </div>
       )}
 
-      {/* STAGE 3: Process & Result Preview */}
+      {/* STAGE 3: Process Execution */}
       {stage === 'process' && (
         <div className="tool-controls">
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
@@ -661,30 +664,32 @@ export default function TextTool() {
               disabled={processing}
               onClick={handleProcessPdf}
             >
-              {processing ? (
-                <>กำลังประมวลผล PDF…</>
-              ) : resultUrl ? (
-                <>ประมวลผลอีกครั้ง</>
-              ) : (
-                <>ฝังข้อความและแสดง PDF</>
-              )}
+              {processing ? <>กำลังฝังข้อความลงใน PDF…</> : <>เริ่มฝังข้อความลงในเอกสาร</>}
             </button>
           </div>
 
-          {message && (
-            <p className={`message ${resultUrl ? 'success' : ''}`}>{message}</p>
-          )}
-
-          {resultUrl && (
-            <PdfPreview
-              previewUrl={resultUrl}
-              downloadFilename="text-added.pdf"
-              metaText="ผลลัพธ์พร้อมตรวจสอบ"
-              onBack={() => setStage('place')}
-              backLabel="กลับไปแก้ข้อความ"
-            />
-          )}
+          {message && <p className="message">{message}</p>}
         </div>
+      )}
+
+      {/* STAGE 4: Dedicated Download Screen with Ad / Partner Card */}
+      {stage === 'download' && resultUrl && (
+        <DownloadScreen
+          downloadUrl={resultUrl}
+          filename={`text_${file?.name || 'document.pdf'}`}
+          title="ฝังข้อความลงใน PDF สำเร็จแล้ว!"
+          subtitle="ข้อความทั้งหมดถูกฝังลงในเอกสารอย่างคมชัด พร้อมดาวน์โหลดทันที"
+          onBack={() => setStage('place')}
+          backLabel="← กลับไปแก้ไขข้อความ"
+          onReset={() => {
+            setStage('select');
+            setFile(null);
+            setItems([]);
+            setResultUrl('');
+            setMessage('');
+          }}
+          resetLabel="แก้ไขไฟล์ใหม่"
+        />
       )}
     </div>
   );

@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import DropZone from '../common/DropZone';
 import PdfPreview from '../common/PdfPreview';
+import DownloadScreen from '../common/DownloadScreen';
 
 export default function MergeTool() {
   const [entries, setEntries] = useState([]);
-  const [step, setStep] = useState('select'); // 'select' | 'arrange'
+  const [step, setStep] = useState('select'); // 'select' | 'arrange' | 'download'
   const [processing, setProcessing] = useState(false);
   const [message, setMessage] = useState('');
   const [resultUrl, setResultUrl] = useState('');
@@ -85,7 +86,8 @@ export default function MergeTool() {
       if (resultUrl) URL.revokeObjectURL(resultUrl);
       const url = URL.createObjectURL(blob);
       setResultUrl(url);
-      setMessage(`รวม ${entries.length} ไฟล์เรียบร้อย ตรวจสอบตัวอย่างก่อนดาวน์โหลดได้`);
+      setStep('download');
+      setMessage(`รวม ${entries.length} ไฟล์เรียบร้อย พร้อมดาวน์โหลดแล้ว`);
     } catch (err) {
       setMessage(`รวมไฟล์ไม่สำเร็จ: ${err.message}`);
     } finally {
@@ -105,10 +107,28 @@ export default function MergeTool() {
       <p className="merge-step">
         {step === 'select'
           ? '01 / เลือกเอกสารที่ต้องการรวม'
-          : '02 / จัดเรียงและดูตัวอย่าง'}
+          : step === 'arrange'
+          ? '02 / จัดเรียงลำดับไฟล์'
+          : '03 / เอกสารพร้อมดาวน์โหลด'}
       </p>
 
-      {step === 'select' ? (
+      {step === 'download' && resultUrl ? (
+        <DownloadScreen
+          downloadUrl={resultUrl}
+          filename="merged.pdf"
+          title="รวมไฟล์ PDF สำเร็จแล้ว!"
+          subtitle={`รวมเอกสารทั้งหมด ${entries.length} ไฟล์เป็นไฟล์เดียวเรียบร้อย`}
+          onBack={() => setStep('arrange')}
+          backLabel="← กลับไปจัดเรียงไฟล์"
+          onReset={() => {
+            setStep('select');
+            setEntries([]);
+            setResultUrl('');
+            setMessage('');
+          }}
+          resetLabel="รวมไฟล์ชุดใหม่"
+        />
+      ) : step === 'select' ? (
         <div className="tool-controls">
           <DropZone
             onFilesSelected={addFiles}
@@ -242,16 +262,8 @@ export default function MergeTool() {
             >
               {processing ? 'กำลังรวมไฟล์…' : `รวมไฟล์ PDF (${entries.length} ไฟล์)`}
             </button>
-            {message && <p className={`message ${resultUrl ? 'success' : ''}`}>{message}</p>}
+            {message && <p className="message">{message}</p>}
           </div>
-
-          {resultUrl && (
-            <PdfPreview
-              previewUrl={resultUrl}
-              downloadFilename="merged.pdf"
-              metaText="ตัวอย่างไฟล์ที่รวมแล้ว"
-            />
-          )}
         </form>
       )}
     </div>
