@@ -1,6 +1,6 @@
 # PDF Lover
 
-**English** | [ภาษาไทย](README.th.md)
+**English** | [ภาษาไทย](README.th.md) | [日本語](README.ja.md)
 
 ---
 
