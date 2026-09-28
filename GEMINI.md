@@ -28,7 +28,7 @@ Do not implement a bare upload-and-process flow for tools where the user can sel
 The frontend is built with React 19 + Vite with `react-router-dom`:
 - Component architecture in `src/components/` (Home catalog, tool shell, common DropZone & PdfPreview, individual tool components in `src/components/tools/`).
 - State and drag-drop interactions are managed declaratively in React.
-- Muji-inspired restrained design system in `src/styles.css`.
+- Clean & minimalist design system with warm neutral tones in `src/styles.css`.
 - Python/FastAPI serves all `/api/*` endpoints and serves `dist/index.html` on `/` and `/tool/<tool_name>`.
 
 ## Partner spotlight and version updates
@@ -53,7 +53,7 @@ The frontend is built with React 19 + Vite with `react-router-dom`:
 - `run.bat`, `run.ps1`: Windows launcher scripts.
 - `setup.sh`, `run.sh`: Linux/macOS launcher scripts.
 
-Keep the Muji-inspired neutral style, one route per tool, and OCR through Typhoon's remote API. Do not add a GPU-only or large local OCR dependency.
+Keep the minimalist neutral style, one route per tool, and OCR through Typhoon's remote API. Do not add a GPU-only or large local OCR dependency.
 
 ## Run and continue
 

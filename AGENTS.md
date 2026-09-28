@@ -20,7 +20,7 @@ Do not shortcut a document tool from upload directly to processing when the user
 3. Merge accepts files across repeated selections, shows a responsive grid, supports reorder, individual preview, removal, add-more, and merge.
 4. The text editor has three stages: select a PDF; edit text over a rendered page image; process and inspect the resulting PDF before downloading. Do not show the source PDF viewer while placing text.
 5. Text editing supports multiple text items, each with editable Thai text, position, size, font, and color. All non-empty items are embedded in the generated PDF. The editor is a DOM/CSS overlay on a rendered PDF image.
-6. Keep the restrained Muji visual style, responsive layout, Thai UI labels, and lightweight frontend.
+6. Keep the restrained minimalist visual style, responsive layout, Thai UI labels, and lightweight frontend.
 7. OCR is intended to use the remote Typhoon OCR API. Do not add a large local OCR model or GPU-only dependency to default installation.
 8. Partner spotlight & monetization contract: Display native, clean recommendation card (e.g. Shopee affiliate / partner tools) on the homepage split hero. Must be bandwidth-efficient (<1 KB JSON manifest), cached for 24h, and automatically fallback to "Buy Me a Coffee ☕" when offline. Never use intrusive popups, tracking SDKs, or malware-like scripts. All private partner/ad configs remain git-ignored.
 9. Version update notification contract: Check for new releases via lightweight remote manifest (e.g. GitHub raw `version.json`), cached daily. Use non-intrusive UI indicators (titlebar version badge dot or dismissible banner). Silently skip when offline.
@@ -47,7 +47,7 @@ Pending integrations: Typhoon OCR API endpoint wiring.
 - `src/components/ToolPage.jsx`: Tool layout shell.
 - `src/components/tools/`: Individual tool implementations (TextTool, MergeTool, OrganizeTool, CompressTool, SplitTool, RotateTool, CropTool, WatermarkTool, PageNumTool, NoteTool, SignatureTool, ImageTool, ImagePdfTool, ExtractTextTool, ExtractTableTool, SecurityTool, RedactTool, GenericTool).
 - `src/components/common/`: Reusable DropZone, PdfPreview, and PartnerSpotlight components.
-- `src/styles.css`: CSS styling preserving Muji neutral aesthetics.
+- `src/styles.css`: CSS styling preserving warm neutral minimalist aesthetics.
 - `package.json`, `vite.config.js`: Vite build tooling.
 - `run.bat`, `run.ps1`: Windows launcher scripts.
 - `setup.sh`, `run.sh`: Linux/macOS launcher scripts.

@@ -23,7 +23,7 @@ Never collapse upload, editing/selection, processing, and download into one auto
 
 - **Frontend**: React 19 + Vite with `react-router-dom` in `src/`. Components in `src/components/` and `src/components/tools/`.
 - **Backend**: FastAPI in `app/main.py`, PDF transformations in `app/pdf_service.py`, partner/ad management in `app/ads_service.py`.
-- **Styling**: Muji-inspired minimalist design system in `src/styles.css`.
+- **Styling**: Clean & minimalist design system with warm neutral tones in `src/styles.css`.
 - **Static serving**: Production bundle in `dist/` is mounted and served directly by FastAPI.
 
 ## Key files
