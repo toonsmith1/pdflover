@@ -2,10 +2,10 @@
 
 ## Current project state
 
-PDF Lover is an active local-first PDF toolbox MVP in `/home/kriangkrai/Documents/pdflover`.
+PDF Lover is an active local-first PDF toolbox MVP.
 
 - Backend: FastAPI in `app/`; frontend: React 19 + Vite in `src/` (built to `dist/`, served by FastAPI with fallback to `frontend/`).
-- Main branch is `main`; GitHub remote is `git@github.com:toonsmith1/pdflover.git`.
+- Main branch is `main`; GitHub remote is `https://github.com/toonsmith1/pdflover.git` (or `git@github.com:toonsmith1/pdflover.git`).
 - `.env` and `.venv` are local and ignored. Never commit secrets, virtual environments, generated PDFs, or user uploads.
 - Check `git status` before editing and preserve any existing user changes.
 
@@ -27,26 +27,48 @@ Do not shortcut a document tool from upload directly to processing when the user
 
 ## Implemented PDF operations
 
-The backend currently implements merge, split, compress, rotate, organize/reorder, crop, and add-text. It also has PDF page-count and image-preview routes. Other catalog menus still need backend implementations, including OCR, watermark, page numbering, signature, image conversion, extraction, protection/unlock, and redaction.
+The backend and frontend currently implement:
+- **Organize & Layout**: Merge, Split, Organize/Reorder, Rotate, Crop
+- **Content & Annotation**: Add Text (with Thai font support), Notes, Watermark, Page Numbers, Digital Signature
+- **Conversion & Extraction**: PDF to Images (ZIP), Images to PDF, Extract Text, Extract Table
+- **Security & Privacy**: Protect (password encryption), Unlock, Redact (black-out sensitive areas)
+- **Optimization**: Compress (with Ghostscript downsampling support when installed)
+
+Pending integrations: Typhoon OCR API endpoint wiring.
 
 ## Important files
 
 - `app/main.py`: FastAPI API, static bundle serving, and SPA routes.
 - `app/pdf_service.py`: PDF transformations and Thai font embedding.
-- `app/config.py`: environment configuration.
+- `app/ads_service.py`: Partner spotlight and campaign handling.
+- `app/config.py`: Environment configuration.
 - `src/App.jsx`, `src/main.jsx`: React entry and routing.
 - `src/components/ToolCatalog.jsx`: Home catalog page.
 - `src/components/ToolPage.jsx`: Tool layout shell.
-- `src/components/tools/`: Individual tool implementations (TextTool, MergeTool, OrganizeTool, CompressTool, SplitTool, RotateTool, CropTool, GenericTool).
-- `src/components/common/`: Reusable DropZone and PdfPreview components.
+- `src/components/tools/`: Individual tool implementations (TextTool, MergeTool, OrganizeTool, CompressTool, SplitTool, RotateTool, CropTool, WatermarkTool, PageNumTool, NoteTool, SignatureTool, ImageTool, ImagePdfTool, ExtractTextTool, ExtractTableTool, SecurityTool, RedactTool, GenericTool).
+- `src/components/common/`: Reusable DropZone, PdfPreview, and PartnerSpotlight components.
 - `src/styles.css`: CSS styling preserving Muji neutral aesthetics.
 - `package.json`, `vite.config.js`: Vite build tooling.
-- `requirements.txt`, `requirements-dev.txt`, `setup.sh`: dependencies and setup.
+- `run.bat`, `run.ps1`: Windows launcher scripts.
+- `setup.sh`, `run.sh`: Linux/macOS launcher scripts.
 
 ## Running the app
 
+### Windows
+```powershell
+.\run.bat
+# or
+.\run.ps1
+```
+
+### Linux / macOS
 ```bash
-source .venv/bin/activate
+./run.sh
+```
+
+### Manual
+```bash
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 python -m uvicorn app.main:app --reload
 ```
 
@@ -54,7 +76,7 @@ Open `http://127.0.0.1:8000/`. Run `git diff --check` before committing. For cod
 
 ## Open work
 
-- Implement remaining catalog operations, prioritizing watermark and page numbering after the current add-text editor.
 - Add Typhoon OCR API integration and document its data flow.
-- Improve temporary-file/error handling and add meaningful tests.
-- Update README status text and production/deployment/licensing guidance.
+- Add focused test suites for remaining tools.
+- Improve temporary-file/error handling.
+- Select and document production/deployment/licensing guidance.
