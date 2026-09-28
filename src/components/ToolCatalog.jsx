@@ -1,16 +1,17 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Sparkles, X, Shield, ArrowUpRight } from 'lucide-react';
-import { TOOLS, CATEGORIES } from '../data/tools';
+import { Search, X, ArrowUpRight } from 'lucide-react';
+import { useI18n } from '../i18n/LanguageContext';
 import Icon from './common/Icon';
 import PartnerSpotlight from './common/PartnerSpotlight';
 
 export default function ToolCatalog() {
+  const { tools, categories, t } = useI18n();
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
 
   const filteredTools = useMemo(() => {
-    return TOOLS.filter((tool) => {
+    return tools.filter((tool) => {
       const matchCat = filter === 'all' || tool.category === filter;
       const matchSearch =
         !search.trim() ||
@@ -19,17 +20,17 @@ export default function ToolCatalog() {
         tool.id.toLowerCase().includes(search.toLowerCase());
       return matchCat && matchSearch;
     });
-  }, [filter, search]);
+  }, [tools, filter, search]);
 
   const categoryCounts = useMemo(() => {
-    const counts = { all: TOOLS.length };
-    CATEGORIES.forEach((cat) => {
+    const counts = { all: tools.length };
+    categories.forEach((cat) => {
       if (cat.id !== 'all') {
-        counts[cat.id] = TOOLS.filter((t) => t.category === cat.id).length;
+        counts[cat.id] = tools.filter((t) => t.category === cat.id).length;
       }
     });
     return counts;
-  }, []);
+  }, [tools, categories]);
 
   const renderTool = (tool) => (
     <Link key={tool.id} to={`/tool/${tool.id}`} className={`tool ${tool.category === 'external' ? 'tool-external' : ''}`}>
@@ -45,17 +46,17 @@ export default function ToolCatalog() {
 
   return (
     <main className="wrap">
-      {/* Hero Section (Compact Split Grid with Partner Spotlight) */}
+      {/* Hero Section */}
       <section className="catalog-hero-grid">
         <div className="hero-copy">
           <p className="eyebrow">
             <span />
-            LOCAL-FIRST WORKSPACE • ปลอดภัย 100%
+            {t('hero.eyebrow')}
           </p>
           <h1>
-            จัดการไฟล์ PDF บนเครื่องของคุณ
+            {t('hero.titleLine1')}
             <br />
-            <span className="hero-sub">🔒 ไฟล์ไม่ออกนอกเครื่อง • ปลอดภัย รวดเร็ว ทำงานออฟไลน์ได้</span>
+            <span className="hero-sub">{t('hero.subtitle')}</span>
           </h1>
 
           {/* Search Bar */}
@@ -63,7 +64,7 @@ export default function ToolCatalog() {
             <Search size={18} className="search-icon" />
             <input
               type="text"
-              placeholder="ค้นหาเครื่องมือ เช่น รวมไฟล์, ลดขนาด, เพิ่มข้อความ, หมุนหน้า..."
+              placeholder={t('hero.searchPlaceholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -72,7 +73,7 @@ export default function ToolCatalog() {
                 type="button"
                 className="search-clear-btn"
                 onClick={() => setSearch('')}
-                title="ล้างคำค้นหา"
+                title={t('hero.clearSearch')}
               >
                 <X size={14} />
               </button>
@@ -87,8 +88,8 @@ export default function ToolCatalog() {
       </section>
 
       {/* Category Filter Pills */}
-      <nav className="filters" aria-label="กลุ่มเครื่องมือ">
-        {CATEGORIES.map((cat) => (
+      <nav className="filters" aria-label="Tool categories">
+        {categories.map((cat) => (
           <button
             key={cat.id}
             type="button"
@@ -107,14 +108,22 @@ export default function ToolCatalog() {
       </section>
       {filteredTools.some((tool) => tool.category === 'external') && (
         <section className="external-tools-section">
-          <div className="external-tools-heading"><div><small>API / INTERNET REQUIRED</small><h2>บริการที่ส่งไฟล์ไปประมวลผลภายนอก</h2></div><span>ตรวจสอบนโยบายข้อมูลก่อนใช้งาน</span></div>
-          <div className="grid external-tools-grid">{filteredTools.filter((tool) => tool.category === 'external').map(renderTool)}</div>
+          <div className="external-tools-heading">
+            <div>
+              <small>{t('external.badge')}</small>
+              <h2>{t('external.title')}</h2>
+            </div>
+            <span>{t('external.warning')}</span>
+          </div>
+          <div className="grid external-tools-grid">
+            {filteredTools.filter((tool) => tool.category === 'external').map(renderTool)}
+          </div>
         </section>
       )}
 
       {filteredTools.length === 0 && (
         <div className="catalog-empty-search">
-          <p>ไม่พบเครื่องมือที่ตรงกับ "{search}"</p>
+          <p>{t('hero.emptySearch', { search })}</p>
           <button
             type="button"
             className="button small secondary"
@@ -123,7 +132,7 @@ export default function ToolCatalog() {
               setFilter('all');
             }}
           >
-            ดูเครื่องมือทั้งหมด
+            {t('hero.viewAll')}
           </button>
         </div>
       )}

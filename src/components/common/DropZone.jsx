@@ -1,17 +1,23 @@
 import React, { useRef, useState } from 'react';
 import { UploadCloud, FileCheck, Plus } from 'lucide-react';
+import { useI18n } from '../../i18n/LanguageContext';
 
 export default function DropZone({
   onFilesSelected,
   multiple = false,
   accept = 'application/pdf',
-  buttonText = 'เลือกไฟล์ PDF',
-  hintText = 'ลากไฟล์ PDF มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์',
-  label = 'ยังไม่ได้เลือกไฟล์',
+  buttonText,
+  hintText,
+  label,
   selectedFile = null,
 }) {
+  const { t } = useI18n();
   const [isDragOver, setIsDragOver] = useState(false);
   const inputRef = useRef(null);
+
+  const resolvedBtnText = buttonText || t('dropZone.defaultButton');
+  const resolvedHintText = hintText || t('dropZone.defaultHint');
+  const resolvedLabel = label || (selectedFile ? t('dropZone.selected') : t('dropZone.noFile'));
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -58,8 +64,8 @@ export default function DropZone({
       </div>
 
       <div className="drop-text-group">
-        <span className="drop-main-title">{hintText}</span>
-        <em className="drop-sub-label">{label}</em>
+        <span className="drop-main-title">{resolvedHintText}</span>
+        <em className="drop-sub-label">{resolvedLabel}</em>
       </div>
 
       <button
@@ -70,7 +76,7 @@ export default function DropZone({
           inputRef.current?.click();
         }}
       >
-        <Plus size={16} /> {buttonText}
+        <Plus size={16} /> {resolvedBtnText}
       </button>
 
       <input

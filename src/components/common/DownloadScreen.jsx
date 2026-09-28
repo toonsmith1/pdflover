@@ -9,22 +9,29 @@ import {
   ArrowLeft,
   FileCheck,
 } from 'lucide-react';
+import { useI18n } from '../../i18n/LanguageContext';
 import PartnerSpotlight from './PartnerSpotlight';
 
 export default function DownloadScreen({
   downloadUrl,
   filename = 'document.pdf',
-  title = 'ไฟล์ของคุณพร้อมดาวน์โหลดแล้ว!',
-  subtitle = 'ประมวลผลสำเร็จ ปลอดภัยบนเครื่องของคุณ 100%',
+  title,
+  subtitle,
   onReset,
-  resetLabel = 'ทำรายการใหม่',
+  resetLabel,
   onBack,
-  backLabel = '← กลับไปแก้ไข',
+  backLabel,
 }) {
+  const { t } = useI18n();
   const [showPreview, setShowPreview] = useState(false);
 
+  const resolvedTitle = title || t('download.title');
+  const resolvedSubtitle = subtitle || t('download.subtitle');
+  const resolvedResetLabel = resetLabel || t('download.reset');
+  const resolvedBackLabel = backLabel || t('download.back');
+
   return (
-    <section className="download-stage" aria-label="หน้าดาวน์โหลดเอกสาร">
+    <section className="download-stage" aria-label="Download section">
       <div className="download-stage-grid">
         {/* Left Side: Success Action Card */}
         <div className="download-main-card">
@@ -33,9 +40,9 @@ export default function DownloadScreen({
               <CheckCircle2 size={36} color="#436d41" strokeWidth={1.8} />
             </div>
             <div>
-              <span className="download-status-tag">ประมวลผลเสร็จสมบูรณ์</span>
-              <h2>{title}</h2>
-              <p className="download-subtitle">{subtitle}</p>
+              <span className="download-status-tag">{t('download.statusTag')}</span>
+              <h2>{resolvedTitle}</h2>
+              <p className="download-subtitle">{resolvedSubtitle}</p>
             </div>
           </div>
 
@@ -52,7 +59,7 @@ export default function DownloadScreen({
               className="button primary download-main-btn"
             >
               <Download size={18} />
-              <span>ดาวน์โหลดไฟล์ทันที</span>
+              <span>{t('download.downloadBtn')}</span>
             </a>
 
             {/* Secondary Actions */}
@@ -61,10 +68,10 @@ export default function DownloadScreen({
                 type="button"
                 className="button small secondary"
                 onClick={() => setShowPreview((prev) => !prev)}
-                title={showPreview ? 'ซ่อนหน้าต่างตัวอย่าง' : 'ดูตัวอย่างเอกสาร'}
+                title={showPreview ? t('download.hidePreview') : t('download.showPreview')}
               >
                 {showPreview ? <EyeOff size={14} /> : <Eye size={14} />}
-                <span>{showPreview ? 'ซ่อนตัวอย่าง' : 'ดูตัวอย่างเอกสาร'}</span>
+                <span>{showPreview ? t('download.hidePreview') : t('download.showPreview')}</span>
               </button>
 
               <a
@@ -72,10 +79,10 @@ export default function DownloadScreen({
                 target="_blank"
                 rel="noopener noreferrer"
                 className="button small secondary"
-                title="เปิดไฟล์ในแท็บใหม่"
+                title={t('download.newTab')}
               >
                 <ExternalLink size={14} />
-                <span>เปิดแท็บใหม่</span>
+                <span>{t('download.newTab')}</span>
               </a>
 
               {onBack && (
@@ -85,7 +92,7 @@ export default function DownloadScreen({
                   onClick={onBack}
                 >
                   <ArrowLeft size={14} />
-                  <span>{backLabel}</span>
+                  <span>{resolvedBackLabel}</span>
                 </button>
               )}
 
@@ -96,14 +103,14 @@ export default function DownloadScreen({
                   onClick={onReset}
                 >
                   <RotateCcw size={14} />
-                  <span>{resetLabel}</span>
+                  <span>{resolvedResetLabel}</span>
                 </button>
               )}
             </div>
           </div>
         </div>
 
-        {/* Right Side: The Ad / Shopee Recommendation / Buy Me a Coffee */}
+        {/* Right Side: Spotlight / Support */}
         <div className="download-spotlight-wrapper">
           <PartnerSpotlight />
         </div>
@@ -113,16 +120,16 @@ export default function DownloadScreen({
       {showPreview && (
         <div className="download-preview-drawer">
           <div className="download-preview-drawer-head">
-            <strong>ตัวอย่างเอกสาร ({filename})</strong>
+            <strong>{t('download.previewHeading', { filename })}</strong>
             <button
               type="button"
               className="button small secondary"
               onClick={() => setShowPreview(false)}
             >
-              <EyeOff size={13} /> ซ่อนตัวอย่าง
+              <EyeOff size={13} /> {t('download.hidePreview')}
             </button>
           </div>
-          <iframe src={downloadUrl} title={`ตัวอย่าง ${filename}`} />
+          <iframe src={downloadUrl} title={`preview ${filename}`} />
         </div>
       )}
     </section>

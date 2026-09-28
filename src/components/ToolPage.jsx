@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { TOOL_MAP } from '../data/tools';
+import { useI18n } from '../i18n/LanguageContext';
 import CompressTool from './tools/CompressTool';
 import SplitTool from './tools/SplitTool';
 import MergeTool from './tools/MergeTool';
@@ -22,22 +22,23 @@ import RedactTool from './tools/RedactTool';
 
 export default function ToolPage() {
   const { toolId } = useParams();
-  const tool = TOOL_MAP[toolId];
+  const { toolMap, t } = useI18n();
+  const tool = toolMap[toolId];
 
   useEffect(() => {
     if (tool) {
       document.title = `${tool.name} — pdflover`;
     } else {
-      document.title = 'ไม่พบเครื่องมือ — pdflover';
+      document.title = `${t('toolPage.notFoundTitle')} — pdflover`;
     }
-  }, [tool]);
+  }, [tool, t]);
 
   if (!tool) {
     return (
       <main className="tool-page wrap">
-        <Link to="/" className="back">← กลับไปเลือกเครื่องมือ</Link>
-        <h1>ไม่พบเครื่องมือนี้</h1>
-        <p>กรุณากลับไปที่หน้าหลักเพื่อเลือกเครื่องมือใหม่อีกครั้ง</p>
+        <Link to="/" className="back">{t('toolPage.back')}</Link>
+        <h1>{t('toolPage.notFoundTitle')}</h1>
+        <p>{t('toolPage.notFoundDesc')}</p>
       </main>
     );
   }
@@ -87,7 +88,7 @@ export default function ToolPage() {
 
   return (
     <main className="tool-page wrap">
-      <Link to="/" className="back">← กลับไปเลือกเครื่องมือ</Link>
+      <Link to="/" className="back">{t('toolPage.back')}</Link>
       <small id="category">{tool.categoryLabel}</small>
       <h1 id="title">{tool.name}</h1>
       <p id="description">{tool.desc}</p>

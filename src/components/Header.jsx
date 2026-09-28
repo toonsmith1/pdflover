@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FileStack, ArrowLeft, HardDrive, Sparkles } from 'lucide-react';
-import { TOOL_MAP } from '../data/tools';
+import { ArrowLeft, HardDrive } from 'lucide-react';
+import { useI18n } from '../i18n/LanguageContext';
 import logoImage from '../assets/pdflover-logo.png';
 
 const CURRENT_VERSION = '1.0.0';
@@ -22,6 +22,7 @@ function compareVersions(v1, v2) {
 }
 
 export default function Header() {
+  const { lang, changeLang, supportedLangs, t, toolMap } = useI18n();
   const [status, setStatus] = useState('checking...');
   const [updateInfo, setUpdateInfo] = useState(null); // { version, url }
   const location = useLocation();
@@ -30,7 +31,7 @@ export default function Header() {
   const toolId = location.pathname.startsWith('/tool/')
     ? location.pathname.replace('/tool/', '')
     : null;
-  const currentTool = toolId ? TOOL_MAP[toolId] : null;
+  const currentTool = toolId ? toolMap[toolId] : null;
 
   // 1. Health check on localhost engine
   useEffect(() => {
@@ -38,17 +39,17 @@ export default function Header() {
     fetch('/api/health')
       .then((res) => {
         if (!active) return;
-        setStatus(res.ok ? 'Local · Ready' : 'Offline');
+        setStatus(res.ok ? 'ready' : 'offline');
       })
       .catch(() => {
-        if (active) setStatus('Offline');
+        if (active) setStatus('offline');
       });
     return () => {
       active = false;
     };
   }, []);
 
-  // 2. Approach 1: Check latest release via GitHub Releases API (cached 24h)
+  // 2. Check latest release via GitHub Releases API (cached 24h)
   useEffect(() => {
     if (typeof window === 'undefined' || !navigator.onLine) return;
 
@@ -70,7 +71,6 @@ export default function Header() {
       // Ignore cache errors
     }
 
-    // Fetch from GitHub Releases API
     fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`, {
       headers: { Accept: 'application/vnd.github.v3+json' },
     })
@@ -102,40 +102,47 @@ export default function Header() {
       });
   }, []);
 
+  const displayStatus =
+    status === 'ready'
+      ? t('header.ready')
+      : status === 'offline'
+      ? t('header.offline')
+      : '...';
+
   return (
     <header className="site-header wrap">
       <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
-        <Link to="/" className="brand" title="กลับหน้าหลัก">
+        <Link to="/" className="brand" title={t('toolPage.back')}>
           <div className="brand-logo-icon"><img src={logoImage} alt="pdflover" /></div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <strong>pdflover</strong>
 
-              {/* Version Badge with GitHub Update Notification (Approach 1) */}
+              {/* Version Badge with GitHub Update Notification */}
               {updateInfo ? (
                 <a
                   href={updateInfo.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="app-version-badge has-update"
-                  title={`มีเวอร์ชันใหม่ ${updateInfo.version} บน GitHub คลิกเพื่อดูรายละเอียด`}
+                  title={`${t('header.updateBadge')} ${updateInfo.version}`}
                 >
                   <span className="update-pulse-dot" />
-                  <span>v{CURRENT_VERSION} • อัปเดต {updateInfo.version} ↗</span>
+                  <span>v{CURRENT_VERSION} • {t('header.updateTo')} {updateInfo.version} ↗</span>
                 </a>
               ) : (
                 <span className="app-version-badge">v{CURRENT_VERSION} local</span>
               )}
             </div>
-            <span>เครื่องมือเอกสารในเครื่องของคุณ</span>
+            <span>{t('header.subtitle')}</span>
           </div>
         </Link>
 
         {!isHome && currentTool && (
           <div className="header-nav-crumb">
             <span className="crumb-sep">/</span>
-            <Link to="/" className="crumb-link" title="กลับไปหน้ารวมเครื่องมือ">
-              <ArrowLeft size={14} /> เครื่องมือ
+            <Link to="/" className="crumb-link" title={t('header.toolsNav')}>
+              <ArrowLeft size={14} /> {t('header.toolsNav')}
             </Link>
             <span className="crumb-sep">/</span>
             <span className="crumb-active">{currentTool.name}</span>
@@ -143,16 +150,32 @@ export default function Header() {
         )}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {/* Language Switcher */}
+        <div className="lang-switcher" role="group" aria-label="Language selection">
+          {supportedLangs.map((item) => (
+            <button
+              key={item.code}
+              type="button"
+              className={`lang-btn ${lang === item.code ? 'active' : ''}`}
+              onClick={() => changeLang(item.code)}
+              title={item.label}
+            >
+              <span>{item.flag}</span>
+              <span className="lang-label">{item.label}</span>
+            </button>
+          ))}
+        </div>
+
         <div
           className="local-privacy-pill"
-          title="ไฟล์ของคุณถูกประมวลผลบนเครื่องนี้ ไม่มีการส่งขึ้น Cloud"
+          title="Local-first processing"
         >
           <HardDrive size={13} strokeWidth={2} />
-          <span>Local Engine</span>
+          <span>{t('header.localEngine')}</span>
         </div>
-        <span className={`status-pill ${status.toLowerCase().includes('ready') ? 'is-ready' : ''}`}>
-          {status}
+        <span className={`status-pill ${status === 'ready' ? 'is-ready' : ''}`}>
+          {displayStatus}
         </span>
       </div>
     </header>

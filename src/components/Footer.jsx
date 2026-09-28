@@ -1,10 +1,13 @@
 import React from 'react';
+import { useI18n } from '../i18n/LanguageContext';
 
 export default function Footer() {
+  const { t } = useI18n();
+
   return (
     <footer>
-      <span>พื้นที่เล็ก ๆ ที่ทำให้งานเอกสารง่ายขึ้น</span>
-      <span>pdflover / local-first</span>
+      <span>{t('footer.tagline')}</span>
+      <span>{t('footer.brand')}</span>
     </footer>
   );
 }
