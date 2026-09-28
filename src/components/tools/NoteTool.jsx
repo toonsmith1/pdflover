@@ -34,7 +34,7 @@ const HIGHLIGHTER_COLORS = [
 
 const PEN_COLORS = [
   { value: '#222222', label: 'ดำสนิท' },
-  { value: '#79352f', label: 'แดง Muji' },
+  { value: '#79352f', label: 'แดงคลาสสิก' },
   { value: '#1e3a8a', label: 'น้ำเงิน' },
   { value: '#15803d', label: 'เขียวเข้ม' },
   { value: '#b45309', label: 'บรอนซ์' },
@@ -44,7 +44,7 @@ const NOTE_COLORS = [
   { bg: '#fff9c4', border: '#fbc02d', text: '#3e2723', label: 'เหลืองคลาสสิก' },
   { bg: '#e8f5e9', border: '#81c784', text: '#1b5e20', label: 'เขียวสบายตา' },
   { bg: '#fce4ec', border: '#f48fb1', text: '#880e4f', label: 'ชมพูอ่อน' },
-  { bg: '#f7f4ed', border: '#d5cec5', text: '#3c3630', label: 'Muji ครีม' },
+  { bg: '#f7f4ed', border: '#d5cec5', text: '#3c3630', label: 'ครีมธรรมชาติ' },
 ];
 
 function distanceToSegment(px, py, x1, y1, x2, y2) {

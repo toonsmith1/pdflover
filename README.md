@@ -115,7 +115,7 @@ app/
   ads_service.py   Partner spotlight and local campaign management
 src/
   components/      React UI components (tools, catalog, dropzone, preview)
-  styles.css       Muji-inspired minimalist design system
+  styles.css       Clean & minimalist design system with warm neutral tones
 dist/              Production frontend build served by FastAPI
 tests/             Automated test suites
 ```

@@ -34,7 +34,7 @@ const FONTS = [
 const COLORS = [
   { value: '#888888', label: 'เทากลาง' },
   { value: '#444444', label: 'เทาเข้ม' },
-  { value: '#79352f', label: 'แดง Muji' },
+  { value: '#79352f', label: 'แดงคลาสสิก' },
   { value: '#1e3a8a', label: 'น้ำเงิน' },
   { value: '#15803d', label: 'เขียวเข้ม' },
   { value: '#b45309', label: 'บรอนซ์ส้ม' },

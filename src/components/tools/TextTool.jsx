@@ -27,7 +27,7 @@ const FONTS = [
 
 const PRESET_COLORS = [
   '#222222', // Charcoal Black
-  '#79352f', // Muji Red
+  '#79352f', // Classic Red
   '#1e3a8a', // Navy Blue
   '#15803d', // Dark Emerald
   '#b45309', // Warm Bronze
