@@ -10,8 +10,8 @@
     "start": "./run.sh"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Toonsmith1",
+  "license": "LicenseRef-PDF-Lover-Source-Available",
   "dependencies": {
     "lucide-react": "^1.48.0",
     "react": "^19.3.0",

@@ -4771,6 +4771,34 @@ footer {
 .external-tools-heading h2 { margin:4px 0 0; font-size:20px; font-weight:500; }
 .external-tools-heading span { color:var(--muted); font-size:12px; }
 .tool-external { border-color:#d9c7c1; background:#fffaf8; }
+.upcoming-tools-section { margin-top: 42px; padding-top: 24px; border-top: 1px dashed var(--line); }
+.upcoming-tools-heading { display:flex; justify-content:space-between; align-items:end; gap:18px; margin-bottom:14px; }
+.upcoming-tools-heading small { color:var(--muted); letter-spacing:.08em; }
+.upcoming-tools-heading h2 { margin:4px 0 0; font-size:20px; font-weight:500; }
+.upcoming-tools-heading span { color:var(--muted); font-size:12px; }
+.tool-upcoming { opacity:.68; cursor:not-allowed; border-style:dashed; }
+.tool-upcoming .tool-card-footer { justify-content:space-between; }
+.delete-pages-restore { display:grid; gap:8px; padding:12px; border:1px dashed var(--line); border-radius:10px; }
+.delete-pages-restore > div { display:flex; flex-wrap:wrap; gap:10px; }
+.delete-pages-restore-card { display:flex; align-items:center; gap:10px; width:230px; padding:7px; border:1px solid var(--line); border-radius:8px; background:var(--surface); }
+.delete-pages-restore-card img { flex:0 0 64px; width:64px; height:82px; object-fit:cover; border-radius:4px; background:#eee; }
+.delete-pages-restore-card span { font-size:12px; }
+.delete-pages-restore-card button { font-size:11px; padding:5px 7px; }
+.insert-page-settings { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.insert-page-settings label { display:grid; gap:6px; }
+.insert-page-settings input { width:100%; padding:10px; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--ink); }
+.insert-page-settings small { color:var(--muted); font-size:11px; }
+.insert-page-blank { border:2px dashed var(--red); background:#fff8f3; }
+.insert-page-blank-icon { display:grid; place-items:center; aspect-ratio:3/4; font-size:34px; color:var(--red); background:#f6e8df; margin-bottom:5px; }
+@media(min-width:900px){
+  .tool-controls:has(.delete-pages-restore) { grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:start; }
+  .tool-controls:has(.delete-pages-restore) > .back,
+  .tool-controls:has(.delete-pages-restore) > .primary,
+  .tool-controls:has(.delete-pages-restore) > .message { grid-column:1/-1; }
+  .tool-controls:has(.delete-pages-restore) > .delete-pages-restore { grid-column:1; grid-row:2; }
+  .tool-controls:has(.delete-pages-restore) > .image-page-preview { grid-column:2; grid-row:2; }
+}
+@media(max-width:650px){.upcoming-tools-heading{display:block}.upcoming-tools-heading span{display:block;margin-top:6px}}
 @media(max-width:650px){.external-tools-heading{display:block}.external-tools-heading span{display:block;margin-top:6px}}
 .image-page-preview{padding:14px;background:var(--paper);border:1px solid var(--line)}
 .image-preview-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px}

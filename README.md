@@ -122,4 +122,7 @@ tests/             Automated test suites
 
 ## License
 
-No license has been selected yet. Add a license before accepting outside contributions or distributing the project.
+PDF Lover is distributed under the [PDF Lover Source-Available License](LICENSE).
+The Partner Spotlight and partner recommendation features are required parts of
+the software and may not be removed, disabled, hidden, or bypassed. Commercial
+distribution, hosting, and redistribution require prior written permission.

@@ -44,6 +44,19 @@ export default function ToolCatalog() {
     </Link>
   );
 
+  const renderUpcomingTool = (tool) => (
+    <article key={tool.id} className="tool tool-upcoming" aria-disabled="true">
+      <div className="tool-card-top">
+        <div className="tool-icon-wrapper"><Icon name={tool.iconName} size={22} strokeWidth={1.8} /></div>
+        <span className="tool-badge">กำลังพัฒนา</span>
+      </div>
+      <strong>{tool.name}</strong><span>{tool.desc}</span>
+      <div className="tool-card-footer"><small>{tool.id.toUpperCase()}</small><small>เร็ว ๆ นี้</small></div>
+    </article>
+  );
+
+  const isUpcoming = (tool) => ['กำลังเตรียม', 'Coming soon', '準備中'].includes(tool.badge);
+
   return (
     <main className="wrap">
       {/* Hero Section */}
@@ -104,7 +117,7 @@ export default function ToolCatalog() {
 
       {/* Tools Grid */}
       <section className="grid" id="tools">
-        {filteredTools.filter((tool) => tool.category !== 'external').map(renderTool)}
+        {filteredTools.filter((tool) => tool.category !== 'external' && !isUpcoming(tool)).map(renderTool)}
       </section>
       {filteredTools.some((tool) => tool.category === 'external') && (
         <section className="external-tools-section">
@@ -117,6 +130,21 @@ export default function ToolCatalog() {
           </div>
           <div className="grid external-tools-grid">
             {filteredTools.filter((tool) => tool.category === 'external').map(renderTool)}
+          </div>
+        </section>
+      )}
+
+      {filteredTools.some(isUpcoming) && (
+        <section className="upcoming-tools-section">
+          <div className="upcoming-tools-heading">
+            <div>
+              <small>{t('upcoming.badge')}</small>
+              <h2>{t('upcoming.title')}</h2>
+            </div>
+            <span>{t('upcoming.description')}</span>
+          </div>
+          <div className="grid upcoming-tools-grid">
+            {filteredTools.filter(isUpcoming).map(renderUpcomingTool)}
           </div>
         </section>
       )}

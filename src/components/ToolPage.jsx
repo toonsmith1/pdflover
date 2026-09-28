@@ -19,6 +19,8 @@ import ExtractTextTool from './tools/ExtractTextTool';
 import ExtractTableTool from './tools/ExtractTableTool';
 import SecurityTool from './tools/SecurityTool';
 import RedactTool from './tools/RedactTool';
+import DeletePagesTool from './tools/DeletePagesTool';
+import InsertPageTool from './tools/InsertPageTool';
 
 export default function ToolPage() {
   const { toolId } = useParams();
@@ -81,6 +83,10 @@ export default function ToolPage() {
         return <SecurityTool mode="unlock" />;
       case 'redact':
         return <RedactTool />;
+      case 'delete-pages':
+        return <DeletePagesTool />;
+      case 'insert-page':
+        return <InsertPageTool />;
       default:
         return <GenericTool toolId={toolId} />;
     }

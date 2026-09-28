@@ -25,6 +25,9 @@ from .pdf_service import (
     add_watermark_pdf,
     compress_pdf,
     crop_pdf,
+    delete_pages_pdf,
+    insert_blank_pages_pdf,
+    insert_pdf_pages,
     merge_pdfs,
     organize_pdf,
     protect_pdf,
@@ -163,6 +166,35 @@ async def split(file: Annotated[UploadFile, File(...)], pages: Annotated[str, Fo
     except (ValueError, TypeError) as exc:
         raise HTTPException(400, f"Invalid pages: {exc}") from exc
     return Response(result, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="split.pdf"'})
+
+
+@app.post("/api/delete-pages")
+async def delete_pages(file: Annotated[UploadFile, File(...)], pages: Annotated[str, Form(...)]) -> Response:
+    data = await file.read()
+    check_file(file, data)
+    try:
+        selected = parse_page_selection(pages)
+        result = delete_pages_pdf(data, selected)
+    except (ValueError, TypeError) as exc:
+        raise HTTPException(400, f"Invalid pages: {exc}") from exc
+    return Response(result, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="pages-deleted.pdf"'})
+
+
+@app.post("/api/insert-pages")
+async def insert_pages(file: Annotated[UploadFile, File(...)], count: Annotated[int, Form(...)], position: Annotated[int, Form(...)], source_file: Annotated[UploadFile | None, File(None)] = None, pages: Annotated[str | None, Form(None)] = None) -> Response:
+    data = await file.read()
+    check_file(file, data)
+    try:
+        if source_file is not None:
+            source_data = await source_file.read()
+            check_file(source_file, source_data)
+            selected = parse_page_selection(pages or "")
+            result = insert_pdf_pages(data, source_data, selected, position)
+        else:
+            result = insert_blank_pages_pdf(data, count, position)
+    except (ValueError, TypeError) as exc:
+        raise HTTPException(400, f"Invalid insertion settings: {exc}") from exc
+    return Response(result, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="pages-inserted.pdf"'})
 
 
 @app.post("/api/organize")

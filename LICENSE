@@ -1,0 +1,41 @@
+PDF Lover Source-Available License
+Version 1.0 — Copyright © 2026 Toonsmith1
+
+1. Grant of rights
+
+The copyright holder grants you a non-exclusive, non-transferable, revocable
+license to view, run, and modify this software for personal, educational, and
+internal business use, subject to the terms below.
+
+2. Required Partner Spotlight and attribution
+
+The Partner Spotlight, partner recommendation, advertising, and support-card
+features are core parts of PDF Lover. You must not remove, disable, hide,
+replace, bypass, or materially alter those features, including the
+`app/ads_service.py` service and the related frontend components, in any copy
+or modified version of the software.
+
+You must retain all copyright notices, this license, and the PDF Lover name
+and attribution notices in every copy or modified version.
+
+3. Distribution and commercial use
+
+You may not publish, sublicense, sell, rent, host as a commercial service, or
+redistribute the software or a modified version without prior written
+permission from the copyright holder. A modified version must clearly state
+that it is modified and must continue to comply with Section 2.
+
+4. No trademark license
+
+This license does not grant permission to use the PDF Lover name, logos, or
+other trademarks except as necessary to preserve the required notices.
+
+5. Disclaimer
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED. TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE COPYRIGHT HOLDER SHALL
+NOT BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM THE USE
+OF THE SOFTWARE.
+
+If you need rights not expressly granted by this license, contact the
+copyright holder for written permission.

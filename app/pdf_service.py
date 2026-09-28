@@ -47,6 +47,68 @@ def split_pdf(data: bytes, pages: list[int]) -> bytes:
     return output.getvalue()
 
 
+def delete_pages_pdf(data: bytes, pages: list[int]) -> bytes:
+    reader = PdfReader(BytesIO(data))
+    if not pages:
+        raise ValueError("at least one page is required")
+    indexes = {page - 1 for page in pages}
+    if any(index < 0 or index >= len(reader.pages) for index in indexes):
+        raise ValueError("a page is outside the document")
+    if len(indexes) >= len(reader.pages):
+        raise ValueError("at least one page must remain")
+    writer = PdfWriter()
+    for index, page in enumerate(reader.pages):
+        if index not in indexes:
+            writer.add_page(page)
+    output = BytesIO()
+    writer.write(output)
+    return output.getvalue()
+
+
+def insert_blank_pages_pdf(data: bytes, count: int, position: int) -> bytes:
+    reader = PdfReader(BytesIO(data))
+    if count < 1:
+        raise ValueError("at least one blank page is required")
+    if position < 1 or position > len(reader.pages) + 1:
+        raise ValueError("position is outside the document")
+    writer = PdfWriter()
+    for index, page in enumerate(reader.pages, start=1):
+        if index == position:
+            for _ in range(count):
+                writer.add_blank_page(width=float(page.mediabox.width), height=float(page.mediabox.height))
+        writer.add_page(page)
+    if position == len(reader.pages) + 1:
+        page = reader.pages[-1]
+        for _ in range(count):
+            writer.add_blank_page(width=float(page.mediabox.width), height=float(page.mediabox.height))
+    output = BytesIO()
+    writer.write(output)
+    return output.getvalue()
+
+
+def insert_pdf_pages(data: bytes, source: bytes, pages: list[int], position: int) -> bytes:
+    reader = PdfReader(BytesIO(data))
+    source_reader = PdfReader(BytesIO(source))
+    if not pages:
+        raise ValueError("at least one source page is required")
+    if position < 1 or position > len(reader.pages) + 1:
+        raise ValueError("position is outside the document")
+    if any(page < 1 or page > len(source_reader.pages) for page in pages):
+        raise ValueError("a source page is outside the document")
+    writer = PdfWriter()
+    for index, page in enumerate(reader.pages, start=1):
+        if index == position:
+            for page_number in pages:
+                writer.add_page(source_reader.pages[page_number - 1])
+        writer.add_page(page)
+    if position == len(reader.pages) + 1:
+        for page_number in pages:
+            writer.add_page(source_reader.pages[page_number - 1])
+    output = BytesIO()
+    writer.write(output)
+    return output.getvalue()
+
+
 def organize_pdf(data: bytes, order: list[int]) -> bytes:
     reader = PdfReader(BytesIO(data))
     if not order or sorted(order) != list(range(1, len(reader.pages) + 1)):
