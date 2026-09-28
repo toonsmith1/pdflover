@@ -1,93 +1,123 @@
 # PDF Lover
 
-PDF Lover is a local-first PDF toolbox with a small Python service and a browser UI. Common PDF operations run on the user's machine; OCR is provided through a remote Typhoon OCR API so the app does not need to download a large model or require a GPU.
+**English** | [ภาษาไทย](README.th.md)
+
+---
+
+PDF Lover is a local-first PDF toolbox with a FastAPI backend and a modern React browser UI. Common PDF operations run privately on the user's machine; OCR is designed to use a remote Typhoon OCR API so the app does not require a large local model or a GPU.
 
 ## Current status
 
-The repository contains the React tool catalog and a local FastAPI service. PDF processing stays on the local machine; OCR is the separate remote Typhoon OCR service.
+The repository contains a React 19 + Vite frontend (built to `dist/`, served by FastAPI) and a Python backend supporting local PDF transformations.
+
+### Implemented local features
+
+- **Organize & Layout**: Merge, Split, Reorder / Organize, Rotate, Crop
+- **Content & Annotation**: Add Text (with Thai font support), Notes, Watermark, Page Numbers, Digital Signature
+- **Conversion & Extraction**: PDF to Images (ZIP), Images to PDF, Extract Text, Extract Table
+- **Security & Privacy**: Protect (password encryption), Unlock, Redact (black-out sensitive areas)
+- **Optimization**: Compress (with Ghostscript downsampling support when installed)
+
+*Note: OCR integration uses the Typhoon OCR remote API (requires an API key in `.env`).*
 
 ## Requirements
 
 - Python 3.11 or newer
-- Ghostscript for image-aware compression (`sudo apt install ghostscript` on Debian/Ubuntu)
-- Internet access during installation and when using OCR
-- A Typhoon OCR API key for OCR features
-
-PDF operations that do not use OCR can run without internet after dependencies are installed. OCR sends the selected document pages to the configured provider; do not use the OCR feature for sensitive documents unless that data flow is acceptable.
+- Node.js & npm (v18+) for building the React frontend
+- Ghostscript (optional, for image-aware PDF compression: `sudo apt install ghostscript` on Debian/Ubuntu)
+- Typhoon OCR API key (optional, only needed for remote OCR)
 
 ## Quick start
 
-On Linux or macOS, the one-time setup is:
+### Windows
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/toonsmith1/pdflover.git
+   cd pdflover
+   ```
+
+2. Run the application:
+   - Double-click `run.bat` or execute in PowerShell:
+     ```powershell
+     .\run.bat
+     # or
+     .\run.ps1
+     ```
+   *(The script automatically sets up `.venv`, installs Python and npm packages, builds the frontend bundle, and launches the server).*
+
+3. Open your browser at <http://127.0.0.1:8000>.
+
+---
+
+### Linux / macOS
+
+1. Setup environment (one-time):
+   ```bash
+   git clone https://github.com/toonsmith1/pdflover.git
+   cd pdflover
+   chmod +x setup.sh run.sh
+   ./setup.sh
+   ```
+
+2. Start the application:
+   ```bash
+   ./run.sh
+   ```
+
+3. Open <http://127.0.0.1:8000>.
+
+---
+
+### Manual setup
 
 ```bash
-git clone https://github.com/toonsmith1/pdflover.git
-cd pdflover
-./setup.sh
-```
+# 1. Python virtual environment
+python -m venv .venv
 
-Start the app any time with:
-
-```bash
-./run.sh
-```
-
-Open <http://127.0.0.1:8000>. Use `HOST=0.0.0.0 PORT=8000 ./run.sh` only when you intentionally want another device on the network to reach the app.
-
-The setup script requires Python 3.11+, Node.js/npm 18+, and internet access for the first dependency installation. It creates `.venv`, installs Python packages, installs frontend packages, builds `dist/`, and creates `.env` from `.env.example`.
-
-For manual setup:
-
-```bash
-python3 -m venv .venv
+# On Linux/macOS:
 source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
+# On Windows:
+.venv\Scripts\activate
+
+pip install -r requirements.txt
 cp .env.example .env
 
-# Build frontend (React + Vite)
+# 2. Build React frontend
 npm install
 npm run build
+
+# 3. Start server
+python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Run the web app manually:
-
-```bash
-python -m uvicorn app.main:app --reload
-```
-
-Then open <http://127.0.0.1:8000>.
-
-During frontend development, you can also run Vite dev server with API proxying:
-
+During frontend development, you can run the Vite dev server with proxy support:
 ```bash
 npm run dev
 ```
 
-The current MVP has working local endpoints for compressing, splitting, merging, rotating, cropping, organizing, and adding text to PDF files. The other catalog tools are visible in the UI and will be connected incrementally.
-
 ## Development
 
-Install development tools with:
-
+Install development and testing dependencies:
 ```bash
-python -m pip install -r requirements-dev.txt
+pip install -r requirements-dev.txt
 ruff check .
 pytest
 ```
 
-The API key must remain in `.env` or in the process environment. Never put it in frontend JavaScript, commit it to Git, or paste it into an issue.
-
-Compression uses Ghostscript when available so scanned PDFs can be reduced by downsampling embedded images. Review Ghostscript's AGPL or commercial licensing terms before distributing a closed-source hosted product.
-
-## Planned service layout
+## Project structure
 
 ```text
 app/
-  main.py          FastAPI entry point
-  config.py        environment configuration
-  pdf_service.py   local PDF operations
-  ocr_service.py   Typhoon API adapter
-  files.py         temporary-file lifecycle
+  main.py          FastAPI routes & static SPA bundle serving
+  config.py        Environment settings and configuration
+  pdf_service.py   Local PDF processing engine (pypdf, pikepdf, reportlab, pypdfium2)
+  ads_service.py   Partner spotlight and local campaign management
+src/
+  components/      React UI components (tools, catalog, dropzone, preview)
+  styles.css       Muji-inspired minimalist design system
+dist/              Production frontend build served by FastAPI
+tests/             Automated test suites
 ```
 
 ## License
