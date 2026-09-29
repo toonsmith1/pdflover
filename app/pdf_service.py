@@ -9,9 +9,14 @@ import pikepdf
 from PIL import Image
 from pypdf import PdfReader, PdfWriter
 from reportlab.lib.utils import ImageReader
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT, TA_RIGHT
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFError, TTFont
 from reportlab.pdfgen import canvas
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 THAI_FONT = "/usr/share/fonts/truetype/tlwg/Loma.ttf"
 FONT_FILES = {
@@ -276,26 +281,43 @@ def compress_pdf(data: bytes, quality: str = "balanced") -> bytes:
 
 
 def word_to_pdf(data: bytes, filename: str) -> bytes:
-    """Convert a DOC/DOCX document with LibreOffice in an isolated temp folder."""
-    if not shutil.which("libreoffice") and not shutil.which("soffice"):
-        raise RuntimeError("LibreOffice is required for Word to PDF conversion")
+    """Render basic DOC/DOCX content to PDF without Word or LibreOffice."""
+    try:
+        from docx import Document
+    except ImportError as exc:
+        raise RuntimeError("python-docx is required for Word to PDF conversion") from exc
     suffix = Path(filename).suffix.lower()
     if suffix not in {".doc", ".docx"}:
         raise ValueError("Only .doc and .docx files are supported")
-    with tempfile.TemporaryDirectory(prefix="pdflover-word-") as folder:
-        source = Path(folder) / f"source{suffix}"
-        source.write_bytes(data)
-        command = shutil.which("libreoffice") or shutil.which("soffice")
-        subprocess.run(
-            [command, "--headless", "--convert-to", "pdf", "--outdir", folder, str(source)],
-            check=True,
-            capture_output=True,
-            timeout=120,
-        )
-        result = Path(folder) / "source.pdf"
-        if not result.is_file():
-            raise RuntimeError("LibreOffice did not produce a PDF")
-        return result.read_bytes()
+    if suffix == ".doc":
+        raise ValueError("Legacy .doc files are not supported without an office converter; please save as .docx")
+    document = Document(BytesIO(data))
+    font_name = "PDFLover-th-sarabun-new" if "PDFLover-th-sarabun-new" in pdfmetrics.getRegisteredFontNames() else "Helvetica"
+    styles = {
+        "left": ParagraphStyle("WordLeft", fontName=font_name, fontSize=16, leading=20, alignment=TA_LEFT, spaceAfter=2 * mm),
+        "center": ParagraphStyle("WordCenter", fontName=font_name, fontSize=16, leading=20, alignment=TA_CENTER, spaceAfter=2 * mm),
+        "right": ParagraphStyle("WordRight", fontName=font_name, fontSize=16, leading=20, alignment=TA_RIGHT, spaceAfter=2 * mm),
+        "justify": ParagraphStyle("WordJustify", fontName=font_name, fontSize=16, leading=20, alignment=TA_JUSTIFY, spaceAfter=2 * mm),
+        "table": ParagraphStyle("WordTable", fontName=font_name, fontSize=14, leading=17),
+    }
+    story = []
+    for paragraph in document.paragraphs:
+        text = paragraph.text.strip()
+        if not text:
+            story.append(Spacer(1, 3 * mm))
+            continue
+        alignment = str(paragraph.alignment or "").split(".")[-1].lower()
+        style = styles.get(alignment, styles["left"])
+        story.append(Paragraph(text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br/>"), style))
+    for table in document.tables:
+        rows = [[Paragraph(cell.text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"), styles["table"]) for cell in row.cells] for row in table.rows]
+        if rows:
+            grid = Table(rows, repeatRows=1)
+            grid.setStyle(TableStyle([("GRID", (0, 0), (-1, -1), 0.35, colors.grey), ("VALIGN", (0, 0), (-1, -1), "TOP"), ("LEFTPADDING", (0, 0), (-1, -1), 4), ("RIGHTPADDING", (0, 0), (-1, -1), 4)]))
+            story.extend([grid, Spacer(1, 3 * mm)])
+    output = BytesIO()
+    SimpleDocTemplate(output, pagesize=(210 * mm, 297 * mm), rightMargin=20 * mm, leftMargin=20 * mm, topMargin=18 * mm, bottomMargin=18 * mm).build(story or [Paragraph("เอกสารว่าง", styles["left"])])
+    return output.getvalue()
 
 
 def add_page_numbers_pdf(
