@@ -181,7 +181,7 @@ async def delete_pages(file: Annotated[UploadFile, File(...)], pages: Annotated[
 
 
 @app.post("/api/insert-pages")
-async def insert_pages(file: Annotated[UploadFile, File(...)], count: Annotated[int, Form(...)], position: Annotated[int, Form(...)], source_file: Annotated[UploadFile | None, File(None)] = None, pages: Annotated[str | None, Form(None)] = None) -> Response:
+async def insert_pages(file: Annotated[UploadFile, File(...)], count: Annotated[int, Form(...)], position: Annotated[int, Form(...)], source_file: Annotated[UploadFile | None, File()] = None, pages: Annotated[str | None, Form()] = None) -> Response:
     data = await file.read()
     check_file(file, data)
     try:
