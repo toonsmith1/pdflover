@@ -295,6 +295,11 @@ def word_to_pdf(data: bytes, filename: str) -> bytes:
         raise ValueError("Legacy .doc files are not supported without an office converter; please save as .docx")
     document = Document(BytesIO(data))
     font_path = FONT_FILES["th-sarabun-new"] if Path(FONT_FILES["th-sarabun-new"]).is_file() else FONT_FILES["th-sarabun-psk"]
+    section = document.sections[0] if document.sections else None
+    margin_top = section.top_margin.mm if section and section.top_margin else 25.4
+    margin_right = section.right_margin.mm if section and section.right_margin else 25.4
+    margin_bottom = section.bottom_margin.mm if section and section.bottom_margin else 25.4
+    margin_left = section.left_margin.mm if section and section.left_margin else 25.4
 
     def inline(runs):
         result = []
@@ -323,7 +328,7 @@ def word_to_pdf(data: bytes, filename: str) -> bytes:
         blocks.append(f"<table>{''.join(rows)}</table>")
     html = f'''<!doctype html><html><head><meta charset="utf-8"><style>
       @font-face {{ font-family: Sarabun; src: url("file://{font_path}"); }}
-      @page {{ size: A4; margin: 18mm 20mm; }}
+      @page {{ size: A4; margin: {margin_top:g}mm {margin_right:g}mm {margin_bottom:g}mm {margin_left:g}mm; }}
       body {{ font-family: Sarabun; font-size: 16pt; line-height: 1.15; color: #000; }}
       p {{ margin: 0 0 3mm; }} .p-center {{ text-align:center; }} .p-right {{ text-align:right; }} .p-justify {{ text-align:justify; }}
       table {{ width:100%; border-collapse:collapse; margin: 3mm 0; }} td {{ border: .3mm solid #888; padding: 1.5mm; vertical-align:top; }} td p {{ margin:0; }}
