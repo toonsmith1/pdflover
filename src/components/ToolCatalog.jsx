@@ -119,7 +119,7 @@ export default function ToolCatalog() {
       <section className="grid" id="tools">
         {filteredTools.filter((tool) => tool.category !== 'external' && !isUpcoming(tool)).map(renderTool)}
       </section>
-      {filteredTools.some((tool) => tool.category === 'external') && (
+      {filteredTools.some((tool) => tool.category === 'external' && !isUpcoming(tool)) && (
         <section className="external-tools-section">
           <div className="external-tools-heading">
             <div>
@@ -129,7 +129,7 @@ export default function ToolCatalog() {
             <span>{t('external.warning')}</span>
           </div>
           <div className="grid external-tools-grid">
-            {filteredTools.filter((tool) => tool.category === 'external').map(renderTool)}
+            {filteredTools.filter((tool) => tool.category === 'external' && !isUpcoming(tool)).map(renderTool)}
           </div>
         </section>
       )}

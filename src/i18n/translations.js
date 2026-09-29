@@ -46,7 +46,7 @@ export const TRANSLATIONS = {
       unlock: { name: 'ถอดรหัสผ่าน', desc: 'เปิดไฟล์ที่มีรหัสอยู่แล้ว', badge: '' },
       redact: { name: 'ลบข้อมูลลับ', desc: 'นำข้อมูลที่เลือกออกถาวร', badge: '' },
       'remove-metadata': { name: 'ลบ Metadata', desc: 'ลบข้อมูลผู้สร้างและรายละเอียดไฟล์', badge: 'กำลังเตรียม' },
-      ocr: { name: 'อ่านข้อความ · OCR', desc: 'ส่งเอกสารไปประมวลผลผ่าน Typhoon OCR API', badge: 'API ภายนอก' },
+      ocr: { name: 'อ่านข้อความ · OCR', desc: 'ส่งเอกสารไปประมวลผลผ่าน Typhoon OCR API', badge: 'กำลังเตรียม' },
     },
     header: {
       subtitle: 'เครื่องมือเอกสารในเครื่องของคุณ',
@@ -148,7 +148,7 @@ export const TRANSLATIONS = {
       unlock: { name: 'Unlock PDF', desc: 'Remove password protection', badge: '' },
       redact: { name: 'Redact PDF', desc: 'Permanently black out sensitive areas', badge: '' },
       'remove-metadata': { name: 'Remove Metadata', desc: 'Strip creator info and hidden metadata', badge: 'Coming soon' },
-      ocr: { name: 'OCR Recognition', desc: 'Extract text via remote Typhoon OCR API', badge: 'Remote API' },
+      ocr: { name: 'OCR Recognition', desc: 'Extract text via remote Typhoon OCR API', badge: 'Coming soon' },
     },
     header: {
       subtitle: 'Local-first PDF tools on your device',
@@ -250,7 +250,7 @@ export const TRANSLATIONS = {
       unlock: { name: 'パスワード解除', desc: '保護されたPDFのパスワードを解除', badge: '' },
       redact: { name: '墨消し', desc: '個人情報や機密部分を恒久的に黒塗り', badge: '' },
       'remove-metadata': { name: 'メタデータ削除', desc: '作成者情報やファイル詳細情報を完全消去', badge: '準備中' },
-      ocr: { name: 'OCR文字認識', desc: 'Typhoon OCR APIでスキャン文書を文字起こし', badge: '外部API' },
+      ocr: { name: 'OCR文字認識', desc: 'Typhoon OCR APIでスキャン文書を文字起こし', badge: '準備中' },
     },
     header: {
       subtitle: 'お使いのパソコンで完結するPDFツール',

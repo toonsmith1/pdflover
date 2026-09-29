@@ -35,7 +35,7 @@ export const TOOLS = [
   { category: 'pages', categoryLabel: 'จัดการไฟล์และหน้า', id: 'repair-pdf', name: 'ซ่อมแซม PDF', desc: 'กู้โครงสร้างไฟล์ PDF ที่เสียหาย', iconName: 'Wrench', badge: 'กำลังเตรียม' },
   { category: 'edit', categoryLabel: 'แก้ไขเอกสาร', id: 'enhance-scan', name: 'ปรับภาพสแกน', desc: 'ปรับขาวดำ ความคมชัด และแก้ภาพเอียง', iconName: 'ScanLine', badge: 'กำลังเตรียม' },
   { category: 'pages', categoryLabel: 'จัดการไฟล์และหน้า', id: 'batch-pdf', name: 'ประมวลผลหลายไฟล์', desc: 'จัดการ PDF หลายไฟล์พร้อมกัน', iconName: 'Files', badge: 'กำลังเตรียม' },
-  { category: 'external', categoryLabel: 'บริการภายนอก', id: 'ocr', name: 'อ่านข้อความ · OCR', desc: 'ส่งเอกสารไปประมวลผลผ่าน Typhoon OCR API', iconName: 'ScanText', badge: 'API ภายนอก' },
+  { category: 'external', categoryLabel: 'บริการภายนอก', id: 'ocr', name: 'อ่านข้อความ · OCR', desc: 'ส่งเอกสารไปประมวลผลผ่าน Typhoon OCR API', iconName: 'ScanText', badge: 'กำลังเตรียม' },
 ];
 
 export const CATEGORIES = [
