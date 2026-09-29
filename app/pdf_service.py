@@ -281,43 +281,54 @@ def compress_pdf(data: bytes, quality: str = "balanced") -> bytes:
 
 
 def word_to_pdf(data: bytes, filename: str) -> bytes:
-    """Render basic DOC/DOCX content to PDF without Word or LibreOffice."""
+    """Convert DOCX to PDF through HTML/CSS without Word or LibreOffice."""
     try:
         from docx import Document
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+        from weasyprint import HTML
     except ImportError as exc:
-        raise RuntimeError("python-docx is required for Word to PDF conversion") from exc
+        raise RuntimeError("python-docx and WeasyPrint are required for Word to PDF conversion") from exc
     suffix = Path(filename).suffix.lower()
     if suffix not in {".doc", ".docx"}:
         raise ValueError("Only .doc and .docx files are supported")
     if suffix == ".doc":
         raise ValueError("Legacy .doc files are not supported without an office converter; please save as .docx")
     document = Document(BytesIO(data))
-    font_name = "PDFLover-th-sarabun-new" if "PDFLover-th-sarabun-new" in pdfmetrics.getRegisteredFontNames() else "Helvetica"
-    styles = {
-        "left": ParagraphStyle("WordLeft", fontName=font_name, fontSize=16, leading=20, alignment=TA_LEFT, spaceAfter=2 * mm),
-        "center": ParagraphStyle("WordCenter", fontName=font_name, fontSize=16, leading=20, alignment=TA_CENTER, spaceAfter=2 * mm),
-        "right": ParagraphStyle("WordRight", fontName=font_name, fontSize=16, leading=20, alignment=TA_RIGHT, spaceAfter=2 * mm),
-        "justify": ParagraphStyle("WordJustify", fontName=font_name, fontSize=16, leading=20, alignment=TA_JUSTIFY, spaceAfter=2 * mm),
-        "table": ParagraphStyle("WordTable", fontName=font_name, fontSize=14, leading=17),
-    }
-    story = []
+    font_path = FONT_FILES["th-sarabun-new"] if Path(FONT_FILES["th-sarabun-new"]).is_file() else FONT_FILES["th-sarabun-psk"]
+
+    def inline(runs):
+        result = []
+        for run in runs:
+            text = run.text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br>")
+            styles = []
+            if run.bold: styles.append("font-weight:700")
+            if run.italic: styles.append("font-style:italic")
+            if run.underline: styles.append("text-decoration:underline")
+            if run.font.size: styles.append(f"font-size:{run.font.size.pt:g}pt")
+            result.append(f'<span style="{";".join(styles)}">{text}</span>')
+        return "".join(result)
+
+    blocks = []
     for paragraph in document.paragraphs:
-        text = paragraph.text.strip()
-        if not text:
-            story.append(Spacer(1, 3 * mm))
-            continue
-        alignment = str(paragraph.alignment or "").split(".")[-1].lower()
-        style = styles.get(alignment, styles["left"])
-        story.append(Paragraph(text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br/>"), style))
+        align = {WD_ALIGN_PARAGRAPH.CENTER: "center", WD_ALIGN_PARAGRAPH.RIGHT: "right", WD_ALIGN_PARAGRAPH.JUSTIFY: "justify"}.get(paragraph.alignment, "left")
+        blocks.append(f'<p class="p-{align}">{inline(paragraph.runs) or "&nbsp;"}</p>')
     for table in document.tables:
-        rows = [[Paragraph(cell.text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"), styles["table"]) for cell in row.cells] for row in table.rows]
-        if rows:
-            grid = Table(rows, repeatRows=1)
-            grid.setStyle(TableStyle([("GRID", (0, 0), (-1, -1), 0.35, colors.grey), ("VALIGN", (0, 0), (-1, -1), "TOP"), ("LEFTPADDING", (0, 0), (-1, -1), 4), ("RIGHTPADDING", (0, 0), (-1, -1), 4)]))
-            story.extend([grid, Spacer(1, 3 * mm)])
-    output = BytesIO()
-    SimpleDocTemplate(output, pagesize=(210 * mm, 297 * mm), rightMargin=20 * mm, leftMargin=20 * mm, topMargin=18 * mm, bottomMargin=18 * mm).build(story or [Paragraph("เอกสารว่าง", styles["left"])])
-    return output.getvalue()
+        rows = []
+        for row in table.rows:
+            cells = []
+            for cell in row.cells:
+                cell_html = "".join(f'<p>{inline(p.runs)}</p>' for p in cell.paragraphs) or "&nbsp;"
+                cells.append(f"<td>{cell_html}</td>")
+            rows.append(f"<tr>{''.join(cells)}</tr>")
+        blocks.append(f"<table>{''.join(rows)}</table>")
+    html = f'''<!doctype html><html><head><meta charset="utf-8"><style>
+      @font-face {{ font-family: Sarabun; src: url("file://{font_path}"); }}
+      @page {{ size: A4; margin: 18mm 20mm; }}
+      body {{ font-family: Sarabun; font-size: 16pt; line-height: 1.15; color: #000; }}
+      p {{ margin: 0 0 3mm; }} .p-center {{ text-align:center; }} .p-right {{ text-align:right; }} .p-justify {{ text-align:justify; }}
+      table {{ width:100%; border-collapse:collapse; margin: 3mm 0; }} td {{ border: .3mm solid #888; padding: 1.5mm; vertical-align:top; }} td p {{ margin:0; }}
+    </style></head><body>{''.join(blocks) or '<p>เอกสารว่าง</p>'}</body></html>'''
+    return HTML(string=html, base_url=str(Path(font_path).parent)).write_pdf()
 
 
 def add_page_numbers_pdf(
