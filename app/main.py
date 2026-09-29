@@ -1,5 +1,6 @@
 import base64
 import json
+import subprocess
 import zipfile
 from io import BytesIO
 from pathlib import Path
@@ -34,6 +35,7 @@ from .pdf_service import (
     rotate_pdf,
     split_pdf,
     unlock_pdf,
+    word_to_pdf,
 )
 from PIL import Image, ImageDraw
 
@@ -55,9 +57,37 @@ def check_file(upload: UploadFile, data: bytes) -> None:
         raise HTTPException(415, "Only PDF files are supported")
 
 
+def check_word_file(upload: UploadFile, data: bytes) -> None:
+    limit = settings.max_upload_mb * 1024 * 1024
+    if len(data) > limit:
+        raise HTTPException(413, f"File is larger than {settings.max_upload_mb} MB")
+    if Path(upload.filename or "").suffix.lower() not in {".doc", ".docx"}:
+        raise HTTPException(415, "Only DOC and DOCX files are supported")
+
+
+async def convert_word_upload(file: UploadFile) -> Response:
+    data = await file.read()
+    check_word_file(file, data)
+    try:
+        result = word_to_pdf(data, file.filename or "document.docx")
+    except (RuntimeError, ValueError, OSError, subprocess.TimeoutExpired) as exc:
+        raise HTTPException(400, f"Could not convert Word document: {exc}") from exc
+    return Response(result, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="converted.pdf"'})
+
+
 @app.get("/api/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "ocr": "configured" if settings.typhoon_ocr_api_key else "api-key-required"}
+
+
+@app.post("/api/word-preview")
+async def word_preview(file: Annotated[UploadFile, File(...)]) -> Response:
+    return await convert_word_upload(file)
+
+
+@app.post("/api/word-to-pdf")
+async def word_to_pdf_endpoint(file: Annotated[UploadFile, File(...)]) -> Response:
+    return await convert_word_upload(file)
 
 
 @app.get("/api/ads")
@@ -576,6 +606,7 @@ def tool_page(tool_name: str) -> FileResponse:
         "ocr",
         "image",
         "image-pdf",
+        "word-to-pdf",
         "extract-text",
         "extract-table",
         "protect",

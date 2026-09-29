@@ -269,6 +269,29 @@ def compress_pdf(data: bytes, quality: str = "balanced") -> bytes:
     return output.getvalue()
 
 
+def word_to_pdf(data: bytes, filename: str) -> bytes:
+    """Convert a DOC/DOCX document with LibreOffice in an isolated temp folder."""
+    if not shutil.which("libreoffice") and not shutil.which("soffice"):
+        raise RuntimeError("LibreOffice is required for Word to PDF conversion")
+    suffix = Path(filename).suffix.lower()
+    if suffix not in {".doc", ".docx"}:
+        raise ValueError("Only .doc and .docx files are supported")
+    with tempfile.TemporaryDirectory(prefix="pdflover-word-") as folder:
+        source = Path(folder) / f"source{suffix}"
+        source.write_bytes(data)
+        command = shutil.which("libreoffice") or shutil.which("soffice")
+        subprocess.run(
+            [command, "--headless", "--convert-to", "pdf", "--outdir", folder, str(source)],
+            check=True,
+            capture_output=True,
+            timeout=120,
+        )
+        result = Path(folder) / "source.pdf"
+        if not result.is_file():
+            raise RuntimeError("LibreOffice did not produce a PDF")
+        return result.read_bytes()
+
+
 def add_page_numbers_pdf(
     data: bytes,
     position: str = "bottom-center",

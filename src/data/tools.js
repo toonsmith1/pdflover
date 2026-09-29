@@ -18,7 +18,7 @@ export const TOOLS = [
   { category: 'convert', categoryLabel: 'แปลงและดึงข้อมูล', id: 'image-pdf', name: 'รูปเป็น PDF', desc: 'รวมภาพให้เป็นเอกสาร', iconName: 'Images', badge: '' },
   { category: 'convert', categoryLabel: 'แปลงและดึงข้อมูล', id: 'extract-text', name: 'ดึงข้อความ', desc: 'นำเนื้อหาไปใช้ต่อ', iconName: 'FileText', badge: '' },
   { category: 'convert', categoryLabel: 'แปลงและดึงข้อมูล', id: 'extract-table', name: 'ดึงตาราง', desc: 'นำข้อมูลไปใช้ในสเปรดชีต', iconName: 'Table', badge: '' },
-  { category: 'convert', categoryLabel: 'แปลงและดึงข้อมูล', id: 'word-to-pdf', name: 'Word เป็น PDF', desc: 'แปลงเอกสาร Word เป็น PDF', iconName: 'FileType', badge: 'กำลังเตรียม' },
+  { category: 'convert', categoryLabel: 'แปลงและดึงข้อมูล', id: 'word-to-pdf', name: 'Word เป็น PDF', desc: 'แปลงเอกสาร Word เป็น PDF', iconName: 'FileType', badge: '' },
   { category: 'convert', categoryLabel: 'แปลงและดึงข้อมูล', id: 'pdf-to-word', name: 'PDF เป็น Word', desc: 'แปลง PDF เป็นเอกสาร Word', iconName: 'FileText', badge: 'กำลังเตรียม' },
   { category: 'convert', categoryLabel: 'แปลงและดึงข้อมูล', id: 'pdf-to-excel', name: 'PDF เป็น Excel', desc: 'แปลงตารางเป็นไฟล์ Excel', iconName: 'Table', badge: 'กำลังเตรียม' },
   { category: 'convert', categoryLabel: 'แปลงและดึงข้อมูล', id: 'pdf-to-csv', name: 'PDF เป็น CSV', desc: 'ส่งออกข้อมูลตารางเป็น CSV', iconName: 'FileSpreadsheet', badge: 'กำลังเตรียม' },

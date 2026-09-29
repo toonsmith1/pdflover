@@ -21,6 +21,7 @@ import SecurityTool from './tools/SecurityTool';
 import RedactTool from './tools/RedactTool';
 import DeletePagesTool from './tools/DeletePagesTool';
 import InsertPageTool from './tools/InsertPageTool';
+import WordToPdfTool from './tools/WordToPdfTool';
 
 export default function ToolPage() {
   const { toolId } = useParams();
@@ -87,6 +88,8 @@ export default function ToolPage() {
         return <DeletePagesTool />;
       case 'insert-page':
         return <InsertPageTool />;
+      case 'word-to-pdf':
+        return <WordToPdfTool />;
       default:
         return <GenericTool toolId={toolId} />;
     }
