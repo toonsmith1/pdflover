@@ -2,6 +2,10 @@ import base64
 import shutil
 import subprocess
 import tempfile
+import html
+import re
+import zipfile
+import xml.etree.ElementTree as ET
 from io import BytesIO
 from pathlib import Path
 
@@ -281,51 +285,68 @@ def compress_pdf(data: bytes, quality: str = "balanced") -> bytes:
 
 
 def word_to_pdf(data: bytes, filename: str) -> bytes:
-    """Convert DOCX to PDF through HTML/CSS without Word or LibreOffice."""
+    """Convert DOCX XML to HTML/CSS, then render the same HTML as PDF."""
     try:
-        from docx import Document
-        from docx.enum.text import WD_ALIGN_PARAGRAPH
         from weasyprint import HTML
     except ImportError as exc:
-        raise RuntimeError("python-docx and WeasyPrint are required for Word to PDF conversion") from exc
+        raise RuntimeError("WeasyPrint is required for Word to PDF conversion") from exc
     suffix = Path(filename).suffix.lower()
     if suffix not in {".doc", ".docx"}:
         raise ValueError("Only .doc and .docx files are supported")
     if suffix == ".doc":
         raise ValueError("Legacy .doc files are not supported without an office converter; please save as .docx")
-    document = Document(BytesIO(data))
     font_path = FONT_FILES["th-sarabun-new"] if Path(FONT_FILES["th-sarabun-new"]).is_file() else FONT_FILES["th-sarabun-psk"]
-    section = document.sections[0] if document.sections else None
-    margin_top = section.top_margin.mm if section and section.top_margin else 25.4
-    margin_right = section.right_margin.mm if section and section.right_margin else 25.4
-    margin_bottom = section.bottom_margin.mm if section and section.bottom_margin else 25.4
-    margin_left = section.left_margin.mm if section and section.left_margin else 25.4
-
-    def inline(runs):
-        result = []
-        for run in runs:
-            text = run.text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br>")
+    ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main", "r": "http://schemas.openxmlformats.org/officeDocument/2006/relationships", "pr": "http://schemas.openxmlformats.org/package/2006/relationships"}
+    with zipfile.ZipFile(BytesIO(data)) as archive:
+        root = ET.fromstring(archive.read("word/document.xml"))
+        rels = ET.fromstring(archive.read("word/_rels/document.xml.rels"))
+        media = {}
+        for rel in rels.findall("pr:Relationship", ns):
+            target = rel.attrib.get("Target", "")
+            if target.startswith("media/"):
+                name = f"word/{target}"
+                if name in archive.namelist():
+                    media[rel.attrib["Id"]] = archive.read(name)
+        section = root.find(".//w:sectPr", ns)
+        def twips(name, fallback=1440):
+            node = section.find(f"w:{name}", ns) if section is not None else None
+            return int(node.attrib.get(f"{{{ns['w']}}}w", fallback)) if node is not None else fallback
+        margin_top, margin_right, margin_bottom, margin_left = [twips(name) / 56.6929 for name in ("pgMar", "pgMar", "pgMar", "pgMar")]
+        if section is not None:
+            pg = section.find("w:pgMar", ns)
+            values = [pg.attrib.get(f"{{{ns['w']}}}{name}") for name in ("top", "right", "bottom", "left")] if pg is not None else []
+            margin_top, margin_right, margin_bottom, margin_left = [(int(value) / 56.6929 if value else 25.4) for value in values] if values else (25.4, 25.4, 25.4, 25.4)
+        def run_html(run):
+            text = "".join((node.text or "") for node in run.findall("w:t", ns))
+            text += "<br>" * len(run.findall("w:br", ns))
+            text = html.escape(text).replace("\n", "<br>")
+            props = run.find("w:rPr", ns)
             styles = []
-            if run.bold: styles.append("font-weight:700")
-            if run.italic: styles.append("font-style:italic")
-            if run.underline: styles.append("text-decoration:underline")
-            if run.font.size: styles.append(f"font-size:{run.font.size.pt:g}pt")
-            result.append(f'<span style="{";".join(styles)}">{text}</span>')
-        return "".join(result)
-
-    blocks = []
-    for paragraph in document.paragraphs:
-        align = {WD_ALIGN_PARAGRAPH.CENTER: "center", WD_ALIGN_PARAGRAPH.RIGHT: "right", WD_ALIGN_PARAGRAPH.JUSTIFY: "justify"}.get(paragraph.alignment, "left")
-        blocks.append(f'<p class="p-{align}">{inline(paragraph.runs) or "&nbsp;"}</p>')
-    for table in document.tables:
-        rows = []
-        for row in table.rows:
-            cells = []
-            for cell in row.cells:
-                cell_html = "".join(f'<p>{inline(p.runs)}</p>' for p in cell.paragraphs) or "&nbsp;"
-                cells.append(f"<td>{cell_html}</td>")
-            rows.append(f"<tr>{''.join(cells)}</tr>")
-        blocks.append(f"<table>{''.join(rows)}</table>")
+            if props is not None and props.find("w:b", ns) is not None: styles.append("font-weight:700")
+            if props is not None and props.find("w:i", ns) is not None: styles.append("font-style:italic")
+            if props is not None and props.find("w:u", ns) is not None: styles.append("text-decoration:underline")
+            size = props.find("w:sz", ns) if props is not None else None
+            if size is not None: styles.append(f"font-size:{int(size.attrib.get(f'{{{ns["w"]}}}val', 32)) / 2:g}pt")
+            return f'<span style="{";".join(styles)}">{text}</span>'
+        def paragraph_html(paragraph):
+            props = paragraph.find("w:pPr", ns)
+            align_node = props.find("w:jc", ns) if props is not None else None
+            align = align_node.attrib.get(f"{{{ns['w']}}}val", "left") if align_node is not None else "left"
+            content = "".join(run_html(run) for run in paragraph.findall("w:r", ns))
+            return f'<p class="p-{align}">{content or "&nbsp;"}</p>'
+        def table_html(table):
+            rows = []
+            for row in table.findall("w:tr", ns):
+                cells = []
+                for cell in row.findall("w:tc", ns):
+                    cells.append("<td>" + "".join(paragraph_html(p) for p in cell.findall("w:p", ns)) + "</td>")
+                rows.append("<tr>" + "".join(cells) + "</tr>")
+            return "<table>" + "".join(rows) + "</table>"
+        body = root.find(".//w:body", ns)
+        blocks = []
+        for child in list(body or []):
+            if child.tag == f"{{{ns['w']}}}p": blocks.append(paragraph_html(child))
+            elif child.tag == f"{{{ns['w']}}}tbl": blocks.append(table_html(child))
     html = f'''<!doctype html><html><head><meta charset="utf-8"><style>
       @font-face {{ font-family: Sarabun; src: url("file://{font_path}"); }}
       @page {{ size: A4; margin: {margin_top:g}mm {margin_right:g}mm {margin_bottom:g}mm {margin_left:g}mm; }}
