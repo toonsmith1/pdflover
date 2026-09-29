@@ -14,7 +14,13 @@ from reportlab.pdfbase.ttfonts import TTFError, TTFont
 from reportlab.pdfgen import canvas
 
 THAI_FONT = "/usr/share/fonts/truetype/tlwg/Loma.ttf"
-FONT_FILES = {"loma": THAI_FONT, "krub": "/home/kriangkrai/.local/share/fonts/ThaiNational/TH Krub.ttf", "umpush": "/usr/share/fonts/truetype/tlwg/Umpush.ttf"}
+FONT_FILES = {
+    "loma": THAI_FONT,
+    "krub": "/home/kriangkrai/.local/share/fonts/ThaiNational/TH Krub.ttf",
+    "umpush": "/usr/share/fonts/truetype/tlwg/Umpush.ttf",
+    "th-sarabun-new": "/home/kriangkrai/.local/share/fonts/ThaiNational/THSarabunNew.ttf",
+    "th-sarabun-psk": "/home/kriangkrai/.local/share/fonts/ThaiNational/THSarabun.ttf",
+}
 for font_name, font_path in FONT_FILES.items():
     if Path(font_path).is_file():
         try:
