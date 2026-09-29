@@ -18,6 +18,10 @@ The repository contains a React 19 + Vite frontend (built to `dist/`, served by 
 - **Security & Privacy**: Protect (password encryption), Unlock, Redact (black-out sensitive areas)
 - **Optimization**: Compress (with Ghostscript downsampling support when installed)
 
+### Word to PDF status
+
+The Word to PDF workflow currently parses DOCX XML into shared HTML/CSS for the browser preview and PDF output. Basic text, styles, tables, Thai fonts, and section margins are supported, but page-boundary matching is still imperfect. Images, floating elements, and Word text boxes are not fully preserved yet.
+
 *Note: OCR integration uses the Typhoon OCR remote API (requires an API key in `.env`).*
 
 ## Requirements
