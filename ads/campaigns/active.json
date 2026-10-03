@@ -3,14 +3,15 @@
     {
       "id": "pdflover-support",
       "enabled": true,
+      "badge": "Shopee แนะนำ",
+      "tag": "ลิงก์แนะนำจาก PDF Lover",
+      "title": "I AM THE BEST ",
+      "description": "ใช้ AI ทำเงิน ทำงานแทน เพิ่มรายได้ 100 เท่า AI GEN MONEY",
+      "image": "",
+      "button_text": "ไปหน้าสินค้า",
+      "target_url": "https://s.shopee.co.th/1ArrImf8j",
       "placement": "all",
-      "badge": "VPN ฟรีแนะนำ",
-      "tag": "ปกป้องความเป็นส่วนตัวออนไลน์",
-      "title": "ใช้ VPN ฟรีเพื่อความเป็นส่วนตัว",
-      "description": "เข้ารหัสการเชื่อมต่อและช่วยปกป้องข้อมูลขณะใช้งานอินเทอร์เน็ต",
-      "image": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=360&auto=format&fit=crop&q=85",
-      "button_text": "ดู VPN ฟรี",
-      "target_url": "https://protonvpn.com/free-vpn"
+      "updated_at": "2026-10-03T12:01:05.803207+00:00"
     }
   ]
 }
