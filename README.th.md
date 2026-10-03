@@ -33,6 +33,7 @@ PDF Lover เป็นชุดเครื่องมือจัดการ�
 - **ฟอนต์มาตรฐานภาษาไทย:** ติดตั้งฟอนต์แห่งชาติ `TH Sarabun New` ในตัว พร้อมระบบจัดระเบียบสระและวรรณยุกต์ซ้อน (Shaping) ผ่าน PyThaiNLP
 - **ฟอนต์ภาษาญี่ปุ่น:** ใช้ฟอนต์ `Noto Sans JP` ที่รวมไว้ในแอปเพื่อให้ PDF แสดงผลสม่ำเสมอ ฟอนต์ใช้ SIL OFL 1.1 โปรดดู [fonts/README.md](fonts/README.md)
 - **คู่มือให้ AI ติดตั้ง:** ขั้นตอนสำหรับ Claude, Gemini, ChatGPT และ Codex อยู่ที่ [docs/AI_INSTALL_GUIDE.md](docs/AI_INSTALL_GUIDE.md)
+- **เอกสารกฎหมายและไลเซนส์:** สรุปใบอนุญาต ความเป็นส่วนตัว เครือข่าย และการแจกจ่ายอยู่ที่ [docs/LEGAL_AND_THIRD_PARTY.md](docs/LEGAL_AND_THIRD_PARTY.md)
 - **ฟอนต์มาตรฐานสากล:** ฟอนต์สากลมาตรฐาน PDF (`Helvetica`, `Times-Roman`, `Courier`)
 
 ### สถานะ Word เป็น PDF
@@ -69,6 +70,12 @@ PDF Lover ยึดหลักการออกแบบแบบ **Local-firs
 ---
 
 ## วิธีเริ่มต้นใช้งาน (Quick Start)
+
+### ติดตั้งด้วย AI
+
+คัดลอกข้อความนี้ให้ Claude, Gemini, ChatGPT หรือ Codex จากโฟลเดอร์หลักของโปรเจกต์:
+
+> ติดตั้ง PDF Lover ตาม [docs/AI_INSTALL_GUIDE.md](docs/AI_INSTALL_GUIDE.md) ตรวจและเก็บการเปลี่ยนแปลงเดิมไว้ ติดตั้งเฉพาะสิ่งที่เครื่องนี้ต้องใช้ เปิดเซิร์ฟเวอร์ที่ `127.0.0.1:8000` ตรวจ `/api/health` และรายงาน dependency เสริมที่ยังไม่พร้อม
 
 ### สำหรับ Windows
 

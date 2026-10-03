@@ -26,6 +26,7 @@ The repository contains a React 19 + Vite frontend (built to `dist/`, served by 
 - **Third-party licenses**: Redistribution notices for bundled fonts and ReportLab are kept in [fonts/](fonts/) and [licenses/](licenses/).
 - **Tool UX guidance**: The staged full-workspace interaction model is documented for future contributors and coding agents in [docs/AI_TOOL_UX_GUIDE.md](docs/AI_TOOL_UX_GUIDE.md).
 - **AI installation guide**: Setup steps and safe handoff instructions for Claude, Gemini, ChatGPT, and Codex are in [docs/AI_INSTALL_GUIDE.md](docs/AI_INSTALL_GUIDE.md).
+- **Legal and third-party notices**: License, privacy, network, and redistribution guidance is summarized in [docs/LEGAL_AND_THIRD_PARTY.md](docs/LEGAL_AND_THIRD_PARTY.md).
 - **English & Western**: Universal standard PDF fonts (`Helvetica`, `Times-Roman`, `Courier`).
 
 ### Word to PDF status
@@ -52,6 +53,12 @@ PDF Lover is designed as a **local-first** application:
 - **CSRF & Localhost Protection**: The local API restricts CORS and enforces strict Origin/Referer verification alongside `TrustedHostMiddleware` to prevent malicious third-party websites from making cross-origin requests to your local `127.0.0.1:8000` instance.
 
 ## Quick start
+
+### Install with an AI assistant
+
+Give Claude, Gemini, ChatGPT, or Codex this prompt from the repository root:
+
+> Install PDF Lover using [docs/AI_INSTALL_GUIDE.md](docs/AI_INSTALL_GUIDE.md). Preserve existing changes, install only what this machine needs, start the server on `127.0.0.1:8000`, verify `/api/health`, and report optional dependencies that remain unavailable.
 
 ### Windows
 

@@ -36,6 +36,7 @@ PDF Lover（ピーディーエフ・ラバー）は、お使いの端末内で�
 - **3言語のUI完全対応 (i18n):** 日本語 (🇯🇵)、英語 (🇬🇧)、タイ語 (🇹🇭) をヘッダーから瞬時に切り替え可能
 - **日本語フォント:** PDF 出力の一貫性のため、SIL OFL 1.1 の `Noto Sans JP` を同梱しています。詳細は [fonts/README.md](fonts/README.md) を参照してください。
 - **AI インストールガイド:** Claude、Gemini、ChatGPT、Codex 向けの手順は [docs/AI_INSTALL_GUIDE.md](docs/AI_INSTALL_GUIDE.md) を参照してください。
+- **法務および第三者通知:** ライセンス、プライバシー、ネットワーク、再配布に関する概要は [docs/LEGAL_AND_THIRD_PARTY.md](docs/LEGAL_AND_THIRD_PARTY.md) を参照してください。
 - **タイ語標準フォント:** タイ国家標準フォント `TH Sarabun New` を内蔵し、PyThaiNLPによる声調記号・母音の結合整形に対応
 - **英欧標準フォント:** PDF標準の欧文フォント（`Helvetica`, `Times-Roman`, `Courier`）
 
@@ -73,6 +74,12 @@ PDF Loverは**ローカルファースト（完全ローカル動作）**とし�
 ---
 
 ## クイックスタート (Quick Start)
+
+### AI によるインストール
+
+リポジトリのルートから、Claude、Gemini、ChatGPT、または Codex に次の指示を渡してください。
+
+> [docs/AI_INSTALL_GUIDE.md](docs/AI_INSTALL_GUIDE.md) に従って PDF Lover をインストールしてください。既存の変更を保持し、このマシンに必要なものだけをインストールし、`127.0.0.1:8000` で起動して `/api/health` を確認し、利用できないオプション依存関係を報告してください。
 
 ### Windows環境の場合
 
