@@ -32,6 +32,7 @@ PDF Lover เป็นชุดเครื่องมือจัดการ�
 - **รองรับ 3 ภาษาเต็มรูปแบบ (i18n):** ภาษาไทย (🇹🇭), English (🇬🇧) และ 日本語 (🇯🇵) สลับภาษาได้ทันทีบนแถบเมนู
 - **ฟอนต์มาตรฐานภาษาไทย:** ติดตั้งฟอนต์แห่งชาติ `TH Sarabun New` ในตัว พร้อมระบบจัดระเบียบสระและวรรณยุกต์ซ้อน (Shaping) ผ่าน PyThaiNLP
 - **ฟอนต์ภาษาญี่ปุ่น:** ใช้ฟอนต์ `Noto Sans JP` ที่รวมไว้ในแอปเพื่อให้ PDF แสดงผลสม่ำเสมอ ฟอนต์ใช้ SIL OFL 1.1 โปรดดู [fonts/README.md](fonts/README.md)
+- **คู่มือให้ AI ติดตั้ง:** ขั้นตอนสำหรับ Claude, Gemini, ChatGPT และ Codex อยู่ที่ [docs/AI_INSTALL_GUIDE.md](docs/AI_INSTALL_GUIDE.md)
 - **ฟอนต์มาตรฐานสากล:** ฟอนต์สากลมาตรฐาน PDF (`Helvetica`, `Times-Roman`, `Courier`)
 
 ### สถานะ Word เป็น PDF

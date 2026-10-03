@@ -25,6 +25,7 @@ The repository contains a React 19 + Vite frontend (built to `dist/`, served by 
 - **Japanese (日本語)**: Bundled `Noto Sans JP` is used for consistent Japanese PDF output. It is distributed under SIL OFL 1.1; see [fonts/README.md](fonts/README.md).
 - **Third-party licenses**: Redistribution notices for bundled fonts and ReportLab are kept in [fonts/](fonts/) and [licenses/](licenses/).
 - **Tool UX guidance**: The staged full-workspace interaction model is documented for future contributors and coding agents in [docs/AI_TOOL_UX_GUIDE.md](docs/AI_TOOL_UX_GUIDE.md).
+- **AI installation guide**: Setup steps and safe handoff instructions for Claude, Gemini, ChatGPT, and Codex are in [docs/AI_INSTALL_GUIDE.md](docs/AI_INSTALL_GUIDE.md).
 - **English & Western**: Universal standard PDF fonts (`Helvetica`, `Times-Roman`, `Courier`).
 
 ### Word to PDF status
