@@ -201,7 +201,10 @@ def test_render_preview():
 def test_add_text():
     pdf = make_test_pdf("Background text")
     items = [
-        {"text": "สวัสดี PDF Lover", "x": 0.2, "y": 0.8, "size": 18, "font": "loma", "color": "#79352f"}
+        {"text": "สวัสดี PDF Lover", "x": 0.2, "y": 0.8, "size": 18, "font": "th-sarabun-new", "color": "#79352f"},
+        {"text": "Hello World in English", "x": 0.2, "y": 0.6, "size": 16, "font": "helvetica", "color": "#1e3a8a"},
+        {"text": "こんにちは世界 日本語テスト", "x": 0.2, "y": 0.4, "size": 16, "font": "heisei-kaku-go", "color": "#222222"},
+        {"text": "明朝体テスト", "x": 0.2, "y": 0.2, "size": 14, "font": "heisei-min", "color": "#15803d"},
     ]
     res = client.post(
         "/api/text",
@@ -210,6 +213,7 @@ def test_add_text():
     )
     assert res.status_code == 200
     assert res.headers["content-type"] == "application/pdf"
+    assert len(res.content) > 1000
 
 
 def test_compress():

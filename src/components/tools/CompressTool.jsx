@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import DropZone from '../common/DropZone';
 import PdfPreview from '../common/PdfPreview';
 import DownloadScreen from '../common/DownloadScreen';
+import { useI18n } from '../../i18n/LanguageContext';
 
 export default function CompressTool() {
+  const { t, lang } = useI18n();
   const [file, setFile] = useState(null);
   const [step, setStep] = useState('select'); // 'select' | 'configure' | 'download'
   const [quality, setQuality] = useState('balanced');
@@ -63,17 +65,25 @@ export default function CompressTool() {
 
   const subtitleText =
     savedPct !== null && fileSizes.original > 0
-      ? `ขนาดไฟล์ลดลงจาก ${(fileSizes.original / 1048576).toFixed(2)} MB เหลือ ${(fileSizes.compressed / 1048576).toFixed(2)} MB (ประหยัดพื้นที่ได้ ${savedPct}%)`
-      : 'ไฟล์ถูกบีบอัดให้มีขนาดเล็กลงอย่างมีประสิทธิภาพ พร้อมดาวน์โหลดทันที';
+      ? (lang === 'ja'
+          ? `ファイルサイズを ${(fileSizes.original / 1048576).toFixed(2)} MB から ${(fileSizes.compressed / 1048576).toFixed(2)} MB に縮小 (${savedPct}% 削減)`
+          : lang === 'en'
+          ? `File size reduced from ${(fileSizes.original / 1048576).toFixed(2)} MB to ${(fileSizes.compressed / 1048576).toFixed(2)} MB (${savedPct}% saved)`
+          : `ขนาดไฟล์ลดลงจาก ${(fileSizes.original / 1048576).toFixed(2)} MB เหลือ ${(fileSizes.compressed / 1048576).toFixed(2)} MB (ประหยัดพื้นที่ได้ ${savedPct}%)`)
+      : (lang === 'ja'
+          ? 'ファイルが効率的に圧縮されました。すぐにダウンロードできます。'
+          : lang === 'en'
+          ? 'File compressed efficiently and ready to download.'
+          : 'ไฟล์ถูกบีบอัดให้มีขนาดเล็กลงอย่างมีประสิทธิภาพ พร้อมดาวน์โหลดทันที');
 
   return (
     <div className="panel">
       <p className="merge-step">
         {step === 'select'
-          ? '01 / เลือกเอกสาร'
+          ? t('common.stepSelect')
           : step === 'configure'
-          ? '02 / ตั้งค่าระดับการบีบอัด'
-          : '03 / เอกสารพร้อมดาวน์โหลด'}
+          ? t('compressTool.stepConfigure')
+          : t('common.stepDownload')}
       </p>
 
       {/* DEDICATED STAGE: Download Screen with Ad & Stats */}
@@ -81,24 +91,22 @@ export default function CompressTool() {
         <DownloadScreen
           downloadUrl={resultUrl}
           filename={`compressed_${file?.name || 'document.pdf'}`}
-          title="ลดขนาดไฟล์ PDF สำเร็จแล้ว!"
+          title={lang === 'ja' ? 'PDF圧縮が完了しました！' : lang === 'en' ? 'PDF Compressed Successfully!' : 'ลดขนาดไฟล์ PDF สำเร็จแล้ว!'}
           subtitle={subtitleText}
           onBack={() => setStep('configure')}
-          backLabel="← กลับไปปรับแต่ง"
           onReset={() => {
             setStep('select');
             setFile(null);
             setResultUrl('');
             setMessage('');
           }}
-          resetLabel="บีบอัดไฟล์ใหม่"
         />
       ) : step === 'select' ? (
         <div className="tool-controls">
           <DropZone
             onFilesSelected={handleFile}
             multiple={false}
-            label={file ? file.name : 'ยังไม่ได้เลือกไฟล์'}
+            label={file ? file.name : undefined}
           />
           <button
             type="button"
@@ -106,7 +114,7 @@ export default function CompressTool() {
             disabled={!file}
             onClick={() => setStep('configure')}
           >
-            ตั้งค่าและดูตัวอย่าง →
+            {t('common.configureAndPreview')}
           </button>
         </div>
       ) : (
@@ -117,19 +125,19 @@ export default function CompressTool() {
               className="back"
               onClick={handleBackToSelect}
             >
-              ← กลับไปเปลี่ยนไฟล์
+              {t('common.changeFile')}
             </button>
 
             <label id="quality-field">
-              <span>ระดับการลดขนาด</span>
+              <span>{t('compressTool.qualityLabel')}</span>
               <select
                 id="quality"
                 value={quality}
                 onChange={(e) => setQuality(e.target.value)}
               >
-                <option value="low">ลดน้อย — รักษาคุณภาพสูง</option>
-                <option value="balanced">สมดุล — ขนาดเล็กและอ่านชัด</option>
-                <option value="high">ลดมาก — ไฟล์เล็กที่สุด</option>
+                <option value="low">{t('compressTool.qualityLow')}</option>
+                <option value="balanced">{t('compressTool.qualityBalanced')}</option>
+                <option value="high">{t('compressTool.qualityHigh')}</option>
               </select>
             </label>
 
@@ -139,7 +147,7 @@ export default function CompressTool() {
               id="run"
               disabled={processing}
             >
-              {processing ? 'กำลังประมวลผล…' : 'เริ่มประมวลผล'}
+              {processing ? t('compressTool.processing') : t('compressTool.btnCompress')}
             </button>
 
             {message && <p className="message">{message}</p>}
@@ -147,7 +155,7 @@ export default function CompressTool() {
 
           <PdfPreview
             previewUrl={sourcePreviewUrl}
-            metaText="ตัวอย่างไฟล์ต้นฉบับ"
+            metaText={lang === 'ja' ? '元のドキュメントのプレビュー' : lang === 'en' ? 'Original Document Preview' : 'ตัวอย่างไฟล์ต้นฉบับ'}
           />
         </form>
       )}

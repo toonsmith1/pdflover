@@ -8,8 +8,15 @@ if (-not (Test-Path ".venv\Scripts\python.exe")) {
     if (-not (Test-Path ".env")) {
         Copy-Item .env.example .env
     }
-    npm.cmd install
-    npm.cmd run build
+    if (-not (Test-Path "dist\index.html")) {
+        if (Get-Command npm -ErrorAction SilentlyContinue) {
+            Write-Host "Building React frontend bundle..." -ForegroundColor Cyan
+            npm.cmd install
+            npm.cmd run build
+        } else {
+            Write-Warning "dist\index.html and npm not found. UI may not be served correctly."
+        }
+    }
 }
 
 Write-Host "Starting PDF Lover on http://$HostAddr`:$Port ..." -ForegroundColor Green

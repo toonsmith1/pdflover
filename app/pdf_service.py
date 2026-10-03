@@ -1,41 +1,194 @@
 import base64
+import html
 import shutil
 import subprocess
 import tempfile
-import html
-import re
-import zipfile
 import xml.etree.ElementTree as ET
+import zipfile
 from io import BytesIO
 from pathlib import Path
 
 import pikepdf
 from PIL import Image
 from pypdf import PdfReader, PdfWriter
+from pythainlp.util import reorder_vowels
 from reportlab.lib.utils import ImageReader
-from reportlab.lib import colors
-from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT, TA_RIGHT
-from reportlab.lib.styles import ParagraphStyle
-from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 from reportlab.pdfbase.ttfonts import TTFError, TTFont
 from reportlab.pdfgen import canvas
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-THAI_FONT = "/usr/share/fonts/truetype/tlwg/Loma.ttf"
-FONT_FILES = {
-    "loma": THAI_FONT,
-    "krub": "/home/kriangkrai/.local/share/fonts/ThaiNational/TH Krub.ttf",
-    "umpush": "/usr/share/fonts/truetype/tlwg/Umpush.ttf",
-    "th-sarabun-new": "/home/kriangkrai/.local/share/fonts/ThaiNational/THSarabunNew.ttf",
-    "th-sarabun-psk": "/home/kriangkrai/.local/share/fonts/ThaiNational/THSarabun.ttf",
+BASE_DIR = Path(__file__).resolve().parent.parent
+FONTS_DIR = BASE_DIR / "fonts"
+
+# Japanese Adobe CID Fonts (Standard CJK fonts built into PDF specification - 0 bytes in repo)
+JAPANESE_CID_FONTS = {
+    "heisei-kaku-go": "HeiseiKakuGo-W5",
+    "heisei-min": "HeiseiMin-W3",
 }
+
+for _cid_key, _cid_name in JAPANESE_CID_FONTS.items():
+    try:
+        pdfmetrics.registerFont(UnicodeCIDFont(_cid_name))
+    except Exception:
+        pass
+
+# Font paths: bundled fonts take precedence, followed by OS system font locations
+FONT_FILES = {
+    "th-sarabun-new": str(FONTS_DIR / "THSarabunNew.ttf"),
+    "th-sarabun-new-bold": str(FONTS_DIR / "THSarabunNew Bold.ttf"),
+    "th-sarabun-new-italic": str(FONTS_DIR / "THSarabunNew Italic.ttf"),
+    "th-sarabun-new-bolditalic": str(FONTS_DIR / "THSarabunNew BoldItalic.ttf"),
+    "th-sarabun-psk": str(FONTS_DIR / "THSarabunNew.ttf"),
+    "sarabun": str(FONTS_DIR / "THSarabunNew.ttf"),
+    "loma": "/usr/share/fonts/truetype/tlwg/Loma.ttf",
+    "umpush": "/usr/share/fonts/truetype/tlwg/Umpush.ttf",
+    "krub": "/usr/share/fonts/truetype/tlwg/Kinnari.ttf",
+}
+
+DEFAULT_THAI_FONT_NAME = None
+
 for font_name, font_path in FONT_FILES.items():
     if Path(font_path).is_file():
         try:
-            pdfmetrics.registerFont(TTFont(f"PDFLover-{font_name}", font_path))
+            reg_name = f"PDFLover-{font_name}"
+            pdfmetrics.registerFont(TTFont(reg_name, font_path, shapable=True))
+            if DEFAULT_THAI_FONT_NAME is None and "sarabun" in font_name:
+                DEFAULT_THAI_FONT_NAME = reg_name
         except (OSError, TTFError):
             continue
+
+# Fallback default if Sarabun was somehow not loaded
+if DEFAULT_THAI_FONT_NAME is None:
+    available = [f for f in pdfmetrics.getRegisteredFontNames() if f.startswith("PDFLover-")]
+    if available:
+        DEFAULT_THAI_FONT_NAME = available[0]
+
+
+def shape_thai(text: str) -> str:
+    """
+    Normalizes Thai text ordering and applies WTT 2.0 / Thai PUA glyph shaping
+    for ReportLab canvas rendering, avoiding floating tone marks, missing tone marks,
+    and overlapping descenders (e.g. ญ/ฐ with below vowels).
+    """
+    if not text:
+        return text
+
+    # 1. Correct common typing order errors (e.g. ท่ี -> ที่, ญ่ี -> ญี่)
+    try:
+        reordered = reorder_vowels(text)
+        text = reordered
+    except (ValueError, TypeError, IndexError):
+        reordered = None
+
+    UPPER_STEM = {'\u0e1b', '\u0e1d', '\u0e1f', '\u0e2c'}  # ป ฝ ฟ ฬ
+    LOWER_STEM = {'\u0e0e', '\u0e0f'}                      # ฎ ฏ
+    DESCENDER = {'\u0e0d', '\u0e10'}                       # ญ ฐ
+
+    ABOVE_VOWEL = {'\u0e31', '\u0e34', '\u0e35', '\u0e36', '\u0e37', '\u0e4d', '\u0e47'}
+    BELOW_VOWEL = {'\u0e38', '\u0e39', '\u0e3a'}
+    TONE_MARKS = {'\u0e48', '\u0e49', '\u0e4a', '\u0e4b', '\u0e4c'}
+
+    chars = list(text)
+
+    # 2. Decompose sara am with tone mark: char + tone + sara am -> nikhahit + tone + sara aa
+    normalized = []
+    i = 0
+    while i < len(chars):
+        c = chars[i]
+        if c in TONE_MARKS and i + 1 < len(chars) and chars[i + 1] == '\u0e33':
+            normalized.append('\u0e4d')
+            normalized.append(c)
+            normalized.append('\u0e32')
+            i += 2
+        elif c == '\u0e33':
+            normalized.append('\u0e4d')
+            normalized.append('\u0e32')
+            i += 1
+        else:
+            normalized.append(c)
+            i += 1
+
+    chars = normalized
+    res = []
+    n = len(chars)
+    i = 0
+    while i < n:
+        c = chars[i]
+
+        # Descenders (ญ, ฐ) before below vowel -> cut descender tail
+        if c in DESCENDER and i + 1 < n and chars[i + 1] in BELOW_VOWEL:
+            res.append('\uf70f' if c == '\u0e0d' else '\uf700')
+            i += 1
+            continue
+
+        # Lower stem (ฎ, ฏ) before below vowel -> shift below vowel downwards
+        if c in LOWER_STEM and i + 1 < n and chars[i + 1] in BELOW_VOWEL:
+            res.append(c)
+            bv = chars[i + 1]
+            shift_bv = {'\u0e38': '\uf718', '\u0e39': '\uf719', '\u0e3a': '\uf71a'}
+            res.append(shift_bv.get(bv, bv))
+            i += 2
+            continue
+
+        # Upper stem consonants (ป, ฝ, ฟ, ฬ) -> shift marks left
+        if c in UPPER_STEM:
+            res.append(c)
+            i += 1
+            if i < n:
+                next_c = chars[i]
+                if next_c in ABOVE_VOWEL:
+                    shift_av = {
+                        '\u0e34': '\uf701', '\u0e35': '\uf702', '\u0e36': '\uf703', '\u0e37': '\uf704',
+                        '\u0e31': '\uf710', '\u0e4d': '\uf711', '\u0e47': '\uf712'
+                    }
+                    res.append(shift_av.get(next_c, next_c))
+                    i += 1
+                    if i < n and chars[i] in TONE_MARKS:
+                        shift_tone_3 = {
+                            '\u0e48': '\uf713', '\u0e49': '\uf714', '\u0e4a': '\uf715',
+                            '\u0e4b': '\uf716', '\u0e4c': '\uf717'
+                        }
+                        res.append(shift_tone_3.get(chars[i], chars[i]))
+                        i += 1
+                    continue
+                elif next_c in BELOW_VOWEL:
+                    res.append(next_c)
+                    i += 1
+                    if i < n and chars[i] in TONE_MARKS:
+                        shift_tone_2 = {
+                            '\u0e48': '\uf705', '\u0e49': '\uf706', '\u0e4a': '\uf707',
+                            '\u0e4b': '\uf708', '\u0e4c': '\uf709'
+                        }
+                        res.append(shift_tone_2.get(chars[i], chars[i]))
+                        i += 1
+                    continue
+                elif next_c in TONE_MARKS:
+                    shift_tone_2 = {
+                        '\u0e48': '\uf705', '\u0e49': '\uf706', '\u0e4a': '\uf707',
+                        '\u0e4b': '\uf708', '\u0e4c': '\uf709'
+                    }
+                    res.append(shift_tone_2.get(next_c, next_c))
+                    i += 1
+                    continue
+            continue
+
+        # Normal consonant: tone mark without above vowel -> lower tone mark (avoid floating tone)
+        if c in TONE_MARKS:
+            prev_is_av = (i > 0 and chars[i - 1] in ABOVE_VOWEL)
+            if not prev_is_av:
+                shift_tone_low = {
+                    '\u0e48': '\uf70a', '\u0e49': '\uf70b', '\u0e4a': '\uf70c',
+                    '\u0e4b': '\uf70d', '\u0e4c': '\uf70e'
+                }
+                res.append(shift_tone_low.get(c, c))
+                i += 1
+                continue
+
+        res.append(c)
+        i += 1
+
+    return "".join(res)
 
 
 def merge_pdfs(files: list[bytes]) -> bytes:
@@ -224,14 +377,26 @@ def add_text_pdf(data: bytes, text_items: list[dict]) -> bytes:
         page_width, page_height = float(page.mediabox.width), float(page.mediabox.height)
         for item in text_items:
             text, x, y, size = str(item.get("text", "")), float(item.get("x", 0)), float(item.get("y", 0)), float(item.get("size", 16))
-            font, color = str(item.get("font", "loma")), str(item.get("color", "#222222"))
-            font_name = f"PDFLover-{font}"
-            if font_name not in pdfmetrics.getRegisteredFontNames():
-                registered_fonts = [f for f in pdfmetrics.getRegisteredFontNames() if f.startswith("PDFLover-")]
-                if registered_fonts:
-                    font_name = registered_fonts[0]
+            font, color = str(item.get("font", "th-sarabun-new")), str(item.get("color", "#222222"))
+            font_key = font.lower().strip()
+            if font_key in JAPANESE_CID_FONTS:
+                font_name = JAPANESE_CID_FONTS[font_key]
+            elif font_key in {"helvetica", "helvetica-bold", "times-roman", "courier"}:
+                standard_map = {
+                    "helvetica": "Helvetica",
+                    "helvetica-bold": "Helvetica-Bold",
+                    "times-roman": "Times-Roman",
+                    "courier": "Courier",
+                }
+                font_name = standard_map.get(font_key, "Helvetica")
+            else:
+                custom_name = f"PDFLover-{font_key}"
+                if custom_name in pdfmetrics.getRegisteredFontNames():
+                    font_name = custom_name
+                elif font_key in pdfmetrics.getRegisteredFontNames():
+                    font_name = font_key
                 else:
-                    raise ValueError("no thai font registered")
+                    font_name = DEFAULT_THAI_FONT_NAME or "Helvetica"
             if not color.startswith("#") or len(color) != 7:
                 raise ValueError("color must be a hex value")
             try: rgb = tuple(int(color[i:i + 2], 16) / 255 for i in (1, 3, 5))
@@ -240,7 +405,8 @@ def add_text_pdf(data: bytes, text_items: list[dict]) -> bytes:
             layer.setFillColorRGB(*rgb)
             lines = text.splitlines() or [text]
             leading = size * 1.25
-            for line_idx, line in enumerate(lines):
+            for line_idx, raw_line in enumerate(lines):
+                line = shape_thai(raw_line)
                 line_y = y * page_height - (line_idx * leading)
                 layer.drawString(x * page_width, line_y, line)
         layer.save()
@@ -295,7 +461,8 @@ def word_to_pdf(data: bytes, filename: str) -> bytes:
         raise ValueError("Only .doc and .docx files are supported")
     if suffix == ".doc":
         raise ValueError("Legacy .doc files are not supported without an office converter; please save as .docx")
-    font_path = FONT_FILES["th-sarabun-new"] if Path(FONT_FILES["th-sarabun-new"]).is_file() else FONT_FILES["th-sarabun-psk"]
+    sarabun_file = FONTS_DIR / "THSarabunNew.ttf"
+    font_path = str(sarabun_file) if sarabun_file.is_file() else FONT_FILES.get("th-sarabun-new", "")
     ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main", "r": "http://schemas.openxmlformats.org/officeDocument/2006/relationships", "pr": "http://schemas.openxmlformats.org/package/2006/relationships"}
     with zipfile.ZipFile(BytesIO(data)) as archive:
         root = ET.fromstring(archive.read("word/document.xml"))
@@ -377,8 +544,7 @@ def add_page_numbers_pdf(
 
     registered_font = f"PDFLover-{font_name}"
     if registered_font not in pdfmetrics.getRegisteredFontNames():
-        available = [f for f in pdfmetrics.getRegisteredFontNames() if f.startswith("PDFLover-")]
-        registered_font = available[0] if available else "Helvetica"
+        registered_font = DEFAULT_THAI_FONT_NAME or "Helvetica"
 
     hex_clean = color.lstrip("#")
     if len(hex_clean) == 6:
@@ -421,6 +587,7 @@ def add_page_numbers_pdf(
             text = f"หน้า {display_num} จาก {display_total} หน้า"
         else:
             text = str(display_num)
+        text = shape_thai(text)
 
         page_w = float(page.mediabox.width)
         page_h = float(page.mediabox.height)
@@ -474,8 +641,7 @@ def add_watermark_pdf(
 
     registered_font = f"PDFLover-{font_name}"
     if registered_font not in pdfmetrics.getRegisteredFontNames():
-        available = [f for f in pdfmetrics.getRegisteredFontNames() if f.startswith("PDFLover-")]
-        registered_font = available[0] if available else "Helvetica"
+        registered_font = DEFAULT_THAI_FONT_NAME or "Helvetica"
 
     hex_clean = color.lstrip("#")
     if len(hex_clean) == 6:
@@ -533,7 +699,7 @@ def add_watermark_pdf(
                     mask="auto",
                 )
             else:
-                cv.drawCentredString(0, -font_size / 3.0, text)
+                cv.drawCentredString(0, -font_size / 3.0, shape_thai(text))
 
         if position == "tiled":
             cols, rows = 3, 3

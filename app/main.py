@@ -5,19 +5,29 @@ import zipfile
 from io import BytesIO
 from pathlib import Path
 from typing import Annotated, Any
+from urllib.parse import urlparse
 
+import httpx
+import pdfplumber
 import pypdfium2 as pdfium
-from pythainlp.util import normalize
 from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
+from PIL import Image, ImageDraw
 from pypdf import PdfReader
-import pdfplumber
-import httpx
+from pythainlp.util import normalize
+from starlette.requests import Request
+from starlette.responses import JSONResponse
 
+from .ads_service import (
+    delete_campaign,
+    list_campaigns,
+    save_campaign,
+    token_matches,
+)
 from .config import get_settings
-from .ads_service import delete_campaign, get_campaign, list_campaigns, save_campaign, token_matches
 from .pdf_service import (
     add_notes_pdf,
     add_page_numbers_pdf,
@@ -37,13 +47,52 @@ from .pdf_service import (
     unlock_pdf,
     word_to_pdf,
 )
-from PIL import Image, ImageDraw
 
 settings = get_settings()
 app = FastAPI(title="PDF Lover API", version="0.1.0")
+
+ALLOWED_HOSTS = {"127.0.0.1", "localhost", "::1", "testserver"}
+
+@app.middleware("http")
+async def verify_csrf_origin(request: Request, call_next):
+    """
+    Protect local server against cross-site request forgery (CSRF) from malicious websites.
+    Rejects any state-changing HTTP request that originates from external domains.
+    """
+    if request.method in {"POST", "PUT", "DELETE", "PATCH"}:
+        origin = request.headers.get("origin")
+        referer = request.headers.get("referer")
+
+        if origin:
+            try:
+                hostname = urlparse(origin).hostname or ""
+                if hostname not in ALLOWED_HOSTS:
+                    return JSONResponse({"detail": "Forbidden: Cross-site request rejected"}, status_code=403)
+            except (ValueError, TypeError):
+                return JSONResponse({"detail": "Forbidden: Invalid origin header"}, status_code=403)
+        elif referer:
+            try:
+                hostname = urlparse(referer).hostname or ""
+                if hostname not in ALLOWED_HOSTS:
+                    return JSONResponse({"detail": "Forbidden: Cross-site request rejected"}, status_code=403)
+            except (ValueError, TypeError):
+                return JSONResponse({"detail": "Forbidden: Invalid referer header"}, status_code=403)
+
+    return await call_next(request)
+
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=["127.0.0.1", "localhost", "::1", "testserver"],
+)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:8000", "http://localhost:8000"],
+    allow_origins=[
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+        "http://127.0.0.1:5173",
+        "http://localhost:5173",
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -70,7 +119,7 @@ async def convert_word_upload(file: UploadFile) -> Response:
     check_word_file(file, data)
     try:
         result = word_to_pdf(data, file.filename or "document.docx")
-    except (RuntimeError, ValueError, OSError, subprocess.TimeoutExpired) as exc:
+    except (RuntimeError, ValueError, OSError, subprocess.TimeoutExpired, zipfile.BadZipFile) as exc:
         raise HTTPException(400, f"Could not convert Word document: {exc}") from exc
     return Response(result, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="converted.pdf"'})
 
@@ -362,7 +411,7 @@ async def redact(file: Annotated[UploadFile, File(...)], regions: Annotated[str,
     try:
         parsed = json.loads(regions)
         if not isinstance(parsed, list):
-            raise ValueError("regions must be a list")
+            raise TypeError("regions must be a list")
         document = pdfium.PdfDocument(data); pages = []
         for index in range(len(document)):
             image = document[index].render(scale=2).to_pil().convert("RGB")

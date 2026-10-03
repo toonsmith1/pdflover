@@ -906,6 +906,7 @@ body.preview-expanded {
   border-radius: var(--radius);
   box-shadow: 0 4px 20px rgba(70, 58, 42, 0.03);
   overflow: hidden;
+  position: relative;
   transition: all 0.2s ease;
 }
 
@@ -928,7 +929,7 @@ body.preview-expanded {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 50;
 }
 
 .text-workspace.is-fullscreen .text-canvas-area {
@@ -941,12 +942,16 @@ body.preview-expanded {
 }
 
 .text-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 10px 18px;
   border-bottom: 1px solid var(--border);
-  background: var(--background);
+  background: #faf8f5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   flex-wrap: wrap;
 }
 
@@ -1049,18 +1054,42 @@ body.preview-expanded {
 .text-canvas-area {
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  overflow: auto;
-  padding: 32px;
+  align-items: center;
+  overflow: hidden;
+  padding: 40px;
   background: #ede6dc; /* Warm desk surface */
   user-select: none;
+  cursor: grab;
+  position: relative;
+}
+
+.text-canvas-area.is-pan-mode {
+  cursor: grab;
+}
+
+.text-canvas-area.is-pan-mode .text-position-pad,
+.text-canvas-area.is-pan-mode .text-overlay-item,
+.text-canvas-area.is-pan-mode #text-canvas,
+.text-canvas-area.is-pan-mode #text-page-image {
+  cursor: grab !important;
+}
+
+.text-canvas-area.is-panning,
+.text-canvas-area.is-panning * {
+  cursor: grabbing !important;
+}
+
+.text-canvas-area.is-panning .text-position-pad {
+  transition: none !important;
 }
 
 .text-position-pad {
   position: relative;
   display: inline-block;
-  margin: 0 auto;
+  margin: auto;
   touch-action: none;
+  transition: transform 0.12s cubic-bezier(0.2, 0, 0, 1);
+  will-change: transform;
 }
 
 .text-position-pad #text-canvas {
@@ -1074,7 +1103,7 @@ body.preview-expanded {
 .text-position-pad #text-page-image {
   display: block;
   max-width: 100%;
-  max-height: 72vh;
+  max-height: 75vh;
   object-fit: contain;
   user-select: none;
   pointer-events: none;
@@ -1106,13 +1135,13 @@ body.preview-expanded {
 
 .text-overlay-item:hover {
   border-color: rgba(123, 106, 88, 0.6);
-  background: rgba(255, 255, 255, 0.45);
+  background: transparent;
 }
 
 .text-overlay-item.active {
-  border: 1.5px solid var(--primary);
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 0 0 3px rgba(123, 106, 88, 0.18);
+  border: 1.5px dashed var(--primary);
+  background: transparent;
+  box-shadow: none;
   cursor: grabbing;
   z-index: 100;
 }

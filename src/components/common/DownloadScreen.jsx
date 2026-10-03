@@ -21,14 +21,16 @@ export default function DownloadScreen({
   resetLabel,
   onBack,
   backLabel,
+  defaultShowPreview = false,
 }) {
-  const { t } = useI18n();
-  const [showPreview, setShowPreview] = useState(false);
+  const { lang, t } = useI18n();
+  const [showPreview, setShowPreview] = useState(defaultShowPreview);
 
-  const resolvedTitle = title || t('download.title');
-  const resolvedSubtitle = subtitle || t('download.subtitle');
-  const resolvedResetLabel = resetLabel || t('download.reset');
-  const resolvedBackLabel = backLabel || t('download.back');
+  const hasThai = (str) => typeof str === 'string' && /[\u0e00-\u0e7f]/.test(str);
+  const resolvedTitle = (title && (!hasThai(title) || lang === 'th')) ? title : t('download.title');
+  const resolvedSubtitle = (subtitle && (!hasThai(subtitle) || lang === 'th')) ? subtitle : t('download.subtitle');
+  const resolvedResetLabel = (resetLabel && (!hasThai(resetLabel) || lang === 'th')) ? resetLabel : t('download.reset');
+  const resolvedBackLabel = (backLabel && (!hasThai(backLabel) || lang === 'th')) ? backLabel : t('download.back');
 
   return (
     <section className="download-stage" aria-label="Download section">

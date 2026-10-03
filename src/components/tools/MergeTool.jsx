@@ -2,8 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import DropZone from '../common/DropZone';
 import PdfPreview from '../common/PdfPreview';
 import DownloadScreen from '../common/DownloadScreen';
+import { useI18n } from '../../i18n';
 
 export default function MergeTool() {
+  const { t, currentLang } = useI18n();
   const [entries, setEntries] = useState([]);
   const [step, setStep] = useState('select'); // 'select' | 'arrange' | 'download'
   const [processing, setProcessing] = useState(false);
@@ -106,39 +108,39 @@ export default function MergeTool() {
     <div className="panel merge-flow">
       <p className="merge-step">
         {step === 'select'
-          ? '01 / เลือกเอกสารที่ต้องการรวม'
+          ? t('mergeTool.stepSelect')
           : step === 'arrange'
-          ? '02 / จัดเรียงลำดับไฟล์'
-          : '03 / เอกสารพร้อมดาวน์โหลด'}
+          ? t('mergeTool.stepArrange')
+          : t('common.stepDownload')}
       </p>
 
       {step === 'download' && resultUrl ? (
         <DownloadScreen
           downloadUrl={resultUrl}
           filename="merged.pdf"
-          title="รวมไฟล์ PDF สำเร็จแล้ว!"
-          subtitle={`รวมเอกสารทั้งหมด ${entries.length} ไฟล์เป็นไฟล์เดียวเรียบร้อย`}
+          title={t('mergeTool.successTitle')}
+          subtitle={t('mergeTool.successSubtitle', { count: entries.length })}
           onBack={() => setStep('arrange')}
-          backLabel="← กลับไปจัดเรียงไฟล์"
+          backLabel={t('mergeTool.backLabel')}
           onReset={() => {
             setStep('select');
             setEntries([]);
             setResultUrl('');
             setMessage('');
           }}
-          resetLabel="รวมไฟล์ชุดใหม่"
+          resetLabel={t('mergeTool.resetLabel')}
         />
       ) : step === 'select' ? (
         <div className="tool-controls">
           <DropZone
             onFilesSelected={addFiles}
             multiple={true}
-            buttonText="＋ เลือกไฟล์ PDF"
-            hintText="ลากไฟล์ PDF มาวางที่นี่"
+            buttonText={currentLang === 'ja' ? '＋ PDFを選択' : currentLang === 'en' ? '＋ Select PDFs' : '＋ เลือกไฟล์ PDF'}
+            hintText={currentLang === 'ja' ? 'PDFファイルをここにドラッグ＆ドロップ' : currentLang === 'en' ? 'Drag and drop PDF files here' : 'ลากไฟล์ PDF มาวางที่นี่'}
             label={
               entries.length
-                ? `เลือกไว้ ${entries.length} ไฟล์ — เพิ่มไฟล์ได้อีก`
-                : 'ยังไม่ได้เลือกไฟล์ (เลือกอย่างน้อย 2 ไฟล์)'
+                ? t('mergeTool.selectedCount', { count: entries.length })
+                : t('mergeTool.noFiles')
             }
           />
           <button
@@ -147,7 +149,7 @@ export default function MergeTool() {
             disabled={entries.length < 2}
             onClick={() => setStep('arrange')}
           >
-            จัดเรียงและดูตัวอย่าง →
+            {t('mergeTool.btnArrange')}
           </button>
           {message && <p className="message">{message}</p>}
         </div>
@@ -161,13 +163,13 @@ export default function MergeTool() {
                 handleCloseSingle();
               }}
             >
-              ← กลับไปเลือกไฟล์
+              {t('common.changeFile')}
             </button>
             <button
               type="button"
               onClick={() => hiddenAddRef.current?.click()}
             >
-              ＋ เพิ่มไฟล์
+              {t('mergeTool.addMoreFiles')}
             </button>
             <input
               ref={hiddenAddRef}
@@ -185,7 +187,7 @@ export default function MergeTool() {
           </div>
 
           <p aria-live="polite">
-            {entries.length} ไฟล์ · ลากเรียงลำดับ · กดดูตัวอย่างทีละไฟล์
+            {t('mergeTool.summary', { count: entries.length })}
           </p>
 
           <div className="merge-file-grid">
@@ -211,7 +213,7 @@ export default function MergeTool() {
                 <div>
                   <button
                     type="button"
-                    aria-label={`เลื่อนขึ้น ${entry.file.name}`}
+                    aria-label={t('mergeTool.moveUp')}
                     disabled={index === 0}
                     onClick={() => move(index, index - 1)}
                   >
@@ -219,7 +221,7 @@ export default function MergeTool() {
                   </button>
                   <button
                     type="button"
-                    aria-label={`เลื่อนลง ${entry.file.name}`}
+                    aria-label={t('mergeTool.moveDown')}
                     disabled={index === entries.length - 1}
                     onClick={() => move(index, index + 1)}
                   >
@@ -229,13 +231,13 @@ export default function MergeTool() {
                     type="button"
                     onClick={() => handleShowSingle(entry)}
                   >
-                    ดูตัวอย่าง
+                    {t('mergeTool.preview')}
                   </button>
                   <button
                     type="button"
                     onClick={() => removeEntry(entry.id)}
                   >
-                    นำออก
+                    {t('mergeTool.remove')}
                   </button>
                 </div>
               </article>
@@ -247,10 +249,10 @@ export default function MergeTool() {
               <div className="merge-single-viewer-head">
                 <strong>{singlePreview.name}</strong>
                 <button type="button" onClick={handleCloseSingle}>
-                  ปิดตัวอย่าง
+                  {t('mergeTool.closePreview')}
                 </button>
               </div>
-              <iframe src={singlePreview.url} title={`ตัวอย่าง ${singlePreview.name}`} />
+              <iframe src={singlePreview.url} title={singlePreview.name} />
             </div>
           )}
 
@@ -260,7 +262,7 @@ export default function MergeTool() {
               className="primary"
               disabled={processing || entries.length < 2}
             >
-              {processing ? 'กำลังรวมไฟล์…' : `รวมไฟล์ PDF (${entries.length} ไฟล์)`}
+              {processing ? t('mergeTool.processing') : t('mergeTool.btnMerge', { count: entries.length })}
             </button>
             {message && <p className="message">{message}</p>}
           </div>

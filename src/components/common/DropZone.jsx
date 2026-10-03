@@ -17,7 +17,8 @@ export default function DropZone({
 
   const resolvedBtnText = buttonText || t('dropZone.defaultButton');
   const resolvedHintText = hintText || t('dropZone.defaultHint');
-  const resolvedLabel = label || (selectedFile ? t('dropZone.selected') : t('dropZone.noFile'));
+  const isThaiDefaultNoFile = typeof label === 'string' && (label === 'ยังไม่ได้เลือกไฟล์' || label.startsWith('ยังไม่ได้เลือกไฟล์'));
+  const resolvedLabel = (label && !isThaiDefaultNoFile) ? label : (selectedFile ? t('dropZone.selected') : t('dropZone.noFile'));
 
   const handleDragOver = (e) => {
     e.preventDefault();

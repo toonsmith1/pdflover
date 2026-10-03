@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import DropZone from '../common/DropZone';
 import PdfPreview from '../common/PdfPreview';
 import DownloadScreen from '../common/DownloadScreen';
+import { useI18n } from '../../i18n/LanguageContext';
 
 export default function SplitTool() {
+  const { t, lang } = useI18n();
   const [file, setFile] = useState(null);
   const [step, setStep] = useState('select'); // 'select' | 'configure' | 'download'
   const [pages, setPages] = useState('1');
@@ -76,10 +78,10 @@ export default function SplitTool() {
     <div className="panel">
       <p className="merge-step">
         {step === 'select'
-          ? '01 / เลือกเอกสาร'
+          ? t('common.stepSelect')
           : step === 'configure'
-          ? '02 / กำหนดหน้าที่ต้องการแยก'
-          : '03 / เอกสารพร้อมดาวน์โหลด'}
+          ? t('splitTool.stepConfigure')
+          : t('common.stepDownload')}
       </p>
 
       {/* DEDICATED STAGE: Download Screen with Ad */}
@@ -87,10 +89,9 @@ export default function SplitTool() {
         <DownloadScreen
           downloadUrl={resultUrl}
           filename={`split_${file?.name || 'document.pdf'}`}
-          title="แยกหน้า PDF สำเร็จแล้ว!"
-          subtitle={`แยกหน้าที่ระบุ (${pages}) ${totalPages ? `จากทั้งหมด ${totalPages} หน้า ` : ''}ออกมาเป็นไฟล์ใหม่เรียบร้อย`}
+          title={lang === 'ja' ? 'PDF分割が完了しました！' : lang === 'en' ? 'PDF Pages Extracted Successfully!' : 'แยกหน้า PDF สำเร็จแล้ว!'}
+          subtitle={lang === 'ja' ? `指定されたページ (${pages}) を新しいファイルとして抽出しました` : lang === 'en' ? `Extracted specified pages (${pages}) into a new document` : `แยกหน้าที่ระบุ (${pages}) ${totalPages ? `จากทั้งหมด ${totalPages} หน้า ` : ''}ออกมาเป็นไฟล์ใหม่เรียบร้อย`}
           onBack={() => setStep('configure')}
-          backLabel="← กลับไปตั้งค่าหน้า"
           onReset={() => {
             setStep('select');
             setFile(null);
@@ -99,7 +100,6 @@ export default function SplitTool() {
             setResultUrl('');
             setMessage('');
           }}
-          resetLabel="แยกไฟล์ใหม่"
         />
       ) : step === 'select' ? (
         <div className="tool-controls">
@@ -108,8 +108,8 @@ export default function SplitTool() {
             multiple={false}
             label={
               file
-                ? `${file.name} ${totalPages ? `(เอกสารมี ${totalPages} หน้า)` : ''}`
-                : 'ยังไม่ได้เลือกไฟล์'
+                ? `${file.name} ${totalPages ? (lang === 'ja' ? `(全 ${totalPages} ページ)` : lang === 'en' ? `(${totalPages} pages)` : `(เอกสารมี ${totalPages} หน้า)`) : ''}`
+                : undefined
             }
           />
           <button
@@ -118,7 +118,7 @@ export default function SplitTool() {
             disabled={!file}
             onClick={() => setStep('configure')}
           >
-            ตั้งค่าและดูตัวอย่าง →
+            {t('common.configureAndPreview')}
           </button>
         </div>
       ) : (
@@ -129,22 +129,22 @@ export default function SplitTool() {
               className="back"
               onClick={handleBackToSelect}
             >
-              ← กลับไปเปลี่ยนไฟล์
+              {t('common.changeFile')}
             </button>
 
             <label id="pages-field">
               <span>
-                หน้าที่ต้องการแยก {totalPages ? `(เอกสารมี ${totalPages} หน้า)` : ''}
+                {t('splitTool.pagesLabel')} {totalPages ? (lang === 'ja' ? `(全 ${totalPages} ページ)` : lang === 'en' ? `(${totalPages} pages)` : `(เอกสารมี ${totalPages} หน้า)`) : ''}
               </span>
               <input
                 id="pages"
                 name="pages"
                 value={pages}
                 onChange={(e) => setPages(e.target.value)}
-                placeholder="เช่น 1, 3, 5 หรือ 1-5"
+                placeholder={lang === 'ja' ? '例: 1, 3, 5 または 1-5' : lang === 'en' ? 'e.g. 1, 3, 5 or 1-5' : 'เช่น 1, 3, 5 หรือ 1-5'}
               />
               <small style={{ color: 'var(--muted-foreground)', fontSize: '12px', marginTop: '2px' }}>
-                💡 ระบุเป็นรายหน้า เช่น <code>1, 3, 5</code> หรือระบุเป็นช่วง เช่น <code>1-5</code>
+                💡 {lang === 'ja' ? <>個別指定は <code>1, 3, 5</code>、範囲指定は <code>1-5</code> と入力</> : lang === 'en' ? <>Specify individual pages like <code>1, 3, 5</code> or ranges like <code>1-5</code></> : <>ระบุเป็นรายหน้า เช่น <code>1, 3, 5</code> หรือระบุเป็นช่วง เช่น <code>1-5</code></>}
               </small>
             </label>
 
@@ -157,7 +157,7 @@ export default function SplitTool() {
                   style={{ fontSize: '12px', padding: '3px 8px' }}
                   onClick={() => setPages('1')}
                 >
-                  เฉพาะหน้า 1
+                  {lang === 'ja' ? '1ページ目のみ' : lang === 'en' ? 'Page 1 only' : 'เฉพาะหน้า 1'}
                 </button>
                 {totalPages >= 3 && (
                   <button
@@ -166,7 +166,7 @@ export default function SplitTool() {
                     style={{ fontSize: '12px', padding: '3px 8px' }}
                     onClick={() => setPages('1-3')}
                   >
-                    3 หน้าแรก (1-3)
+                    {lang === 'ja' ? '最初の3ページ (1-3)' : lang === 'en' ? 'First 3 pages (1-3)' : '3 หน้าแรก (1-3)'}
                   </button>
                 )}
                 <button
@@ -175,7 +175,7 @@ export default function SplitTool() {
                   style={{ fontSize: '12px', padding: '3px 8px' }}
                   onClick={() => setPages(`1-${totalPages}`)}
                 >
-                  ทั้งหมด (1-{totalPages})
+                  {lang === 'ja' ? `全ページ (1-${totalPages})` : lang === 'en' ? `All pages (1-${totalPages})` : `ทั้งหมด (1-${totalPages})`}
                 </button>
               </div>
             )}
@@ -186,7 +186,7 @@ export default function SplitTool() {
               id="run"
               disabled={processing}
             >
-              {processing ? 'กำลังประมวลผล…' : 'เริ่มแยกหน้าเอกสาร'}
+              {processing ? t('splitTool.processing') : t('splitTool.btnSplit')}
             </button>
 
             {message && <p className="message">{message}</p>}
@@ -194,7 +194,7 @@ export default function SplitTool() {
 
           <PdfPreview
             previewUrl={sourcePreviewUrl}
-            metaText="ตัวอย่างไฟล์ต้นฉบับ"
+            metaText={lang === 'ja' ? '元のドキュメントのプレビュー' : lang === 'en' ? 'Original Document Preview' : 'ตัวอย่างไฟล์ต้นฉบับ'}
           />
         </form>
       )}

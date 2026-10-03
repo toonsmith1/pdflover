@@ -110,6 +110,7 @@ export function LanguageProvider({ children }) {
     <LanguageContext.Provider
       value={{
         lang,
+        currentLang: lang,
         changeLang,
         t,
         tools,
