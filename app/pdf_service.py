@@ -14,24 +14,11 @@ from pypdf import PdfReader, PdfWriter
 from pythainlp.util import reorder_vowels
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 from reportlab.pdfbase.ttfonts import TTFError, TTFont
 from reportlab.pdfgen import canvas
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 FONTS_DIR = BASE_DIR / "fonts"
-
-# Japanese Adobe CID Fonts (Standard CJK fonts built into PDF specification - 0 bytes in repo)
-JAPANESE_CID_FONTS = {
-    "heisei-kaku-go": "HeiseiKakuGo-W5",
-    "heisei-min": "HeiseiMin-W3",
-}
-
-for _cid_key, _cid_name in JAPANESE_CID_FONTS.items():
-    try:
-        pdfmetrics.registerFont(UnicodeCIDFont(_cid_name))
-    except Exception:
-        pass
 
 # Font paths: bundled fonts take precedence, followed by OS system font locations
 FONT_FILES = {
@@ -39,8 +26,12 @@ FONT_FILES = {
     "th-sarabun-new-bold": str(FONTS_DIR / "THSarabunNew Bold.ttf"),
     "th-sarabun-new-italic": str(FONTS_DIR / "THSarabunNew Italic.ttf"),
     "th-sarabun-new-bolditalic": str(FONTS_DIR / "THSarabunNew BoldItalic.ttf"),
+    "sarabun": str(FONTS_DIR / "Sarabun-Regular.ttf"),
+    "sarabun-bold": str(FONTS_DIR / "Sarabun-Bold.ttf"),
+    "sarabun-italic": str(FONTS_DIR / "Sarabun-Italic.ttf"),
+    "sarabun-bolditalic": str(FONTS_DIR / "Sarabun-BoldItalic.ttf"),
+    "noto-sans-jp": str(FONTS_DIR / "NotoSansJP[wght].ttf"),
     "th-sarabun-psk": str(FONTS_DIR / "THSarabunNew.ttf"),
-    "sarabun": str(FONTS_DIR / "THSarabunNew.ttf"),
     "loma": "/usr/share/fonts/truetype/tlwg/Loma.ttf",
     "umpush": "/usr/share/fonts/truetype/tlwg/Umpush.ttf",
     "krub": "/usr/share/fonts/truetype/tlwg/Kinnari.ttf",
@@ -379,9 +370,7 @@ def add_text_pdf(data: bytes, text_items: list[dict]) -> bytes:
             text, x, y, size = str(item.get("text", "")), float(item.get("x", 0)), float(item.get("y", 0)), float(item.get("size", 16))
             font, color = str(item.get("font", "th-sarabun-new")), str(item.get("color", "#222222"))
             font_key = font.lower().strip()
-            if font_key in JAPANESE_CID_FONTS:
-                font_name = JAPANESE_CID_FONTS[font_key]
-            elif font_key in {"helvetica", "helvetica-bold", "times-roman", "courier"}:
+            if font_key in {"helvetica", "helvetica-bold", "times-roman", "courier"}:
                 standard_map = {
                     "helvetica": "Helvetica",
                     "helvetica-bold": "Helvetica-Bold",

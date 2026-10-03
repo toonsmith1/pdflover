@@ -96,11 +96,17 @@ export default function ToolPage() {
   };
 
   return (
-    <main className="tool-page wrap">
-      <Link to="/" className="back">{t('toolPage.back')}</Link>
-      <small id="category">{tool.categoryLabel}</small>
-      <h1 id="title">{tool.name}</h1>
-      <p id="description">{tool.desc}</p>
+    <main className="tool-page wrap tool-page--workspace">
+      <div className="tool-heading-row">
+        <Link to="/" className="back">{t('toolPage.back')}</Link>
+        <span className="tool-heading-separator" aria-hidden="true">/</span>
+        <h1 id="title">{tool.name}</h1>
+      </div>
+      <div className="tool-subheading">
+        <small id="category">{tool.categoryLabel}</small>
+        <span className="tool-subheading-separator" aria-hidden="true">·</span>
+        <p id="description">{tool.desc}</p>
+      </div>
       {renderToolComponent()}
     </main>
   );

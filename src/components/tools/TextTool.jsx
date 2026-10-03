@@ -27,6 +27,7 @@ const FONT_GROUPS = {
     label: { th: 'ฟอนต์ภาษาไทย (Thai)', en: 'Thai Fonts', ja: 'タイ語フォント' },
     fonts: [
       { value: 'th-sarabun-new', label: 'TH Sarabun New', family: "'TH Sarabun New', sans-serif" },
+      { value: 'sarabun', label: 'Sarabun (Google Fonts)', family: "'PDFLover Sarabun', Sarabun, sans-serif" },
       { value: 'loma', label: 'Loma', family: "'Loma', sans-serif" },
       { value: 'krub', label: 'TH Krub', family: "'Kinnari', sans-serif" },
       { value: 'umpush', label: 'Umpush', family: "'Umpush', sans-serif" },
@@ -43,8 +44,7 @@ const FONT_GROUPS = {
   ja: {
     label: { th: 'ฟอนต์ภาษาญี่ปุ่น (Japanese)', en: 'Japanese Fonts', ja: '日本語フォント' },
     fonts: [
-      { value: 'heisei-kaku-go', label: 'Heisei Kaku Gothic (ゴシック)', family: "'Hiragino Sans', 'Yu Gothic', 'Meiryo', 'Noto Sans JP', sans-serif" },
-      { value: 'heisei-min', label: 'Heisei Mincho (明朝体)', family: "'Hiragino Mincho ProN', 'Yu Mincho', 'MS Mincho', 'Noto Serif JP', serif" },
+      { value: 'noto-sans-jp', label: 'Noto Sans JP', family: "'PDFLover Noto Sans JP', 'Noto Sans JP', sans-serif" },
     ],
   },
 };
@@ -58,7 +58,7 @@ const ALL_FONTS = [
 const DEFAULT_FONT_BY_LANG = {
   th: 'th-sarabun-new',
   en: 'helvetica',
-  ja: 'heisei-kaku-go',
+  ja: 'noto-sans-jp',
 };
 
 const DEFAULT_TEXT_BY_LANG = {

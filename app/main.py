@@ -1,6 +1,8 @@
 import base64
 import json
 import subprocess
+import platform
+import shutil
 import zipfile
 from io import BytesIO
 from pathlib import Path
@@ -150,6 +152,28 @@ async def convert_word_upload(file: UploadFile) -> Response:
 @app.get("/api/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "ocr": "configured" if settings.typhoon_ocr_api_key else "api-key-required"}
+
+
+@app.get("/api/dependencies/ghostscript")
+def ghostscript_status() -> dict[str, str | bool]:
+    """Report optional Ghostscript availability without attempting installation."""
+    executable = shutil.which("gs") or shutil.which("gswin64c") or shutil.which("gswin32c")
+    return {
+        "installed": bool(executable),
+        "executable": executable or "",
+        "platform": platform.system().lower(),
+    }
+
+
+@app.get("/api/dependencies/weasyprint")
+def weasyprint_status() -> dict[str, str | bool]:
+    """Check the Python package and native rendering libraries together."""
+    try:
+        from weasyprint import HTML
+        HTML(string="<p>PDF Lover</p>").write_pdf()
+    except Exception as exc:
+        return {"installed": False, "error": str(exc), "platform": platform.system().lower()}
+    return {"installed": True, "error": "", "platform": platform.system().lower()}
 
 
 @app.post("/api/word-preview")
@@ -658,6 +682,7 @@ async def compress(file: Annotated[UploadFile, File(...)], quality: Annotated[st
 dist_dir = Path(__file__).resolve().parent.parent / "dist"
 frontend_dir = Path(__file__).resolve().parent.parent / "frontend"
 static_dir = dist_dir if (dist_dir / "index.html").exists() else frontend_dir
+fonts_dir = Path(__file__).resolve().parent.parent / "fonts"
 
 
 @app.api_route("/tool/{tool_name}", methods=["GET", "HEAD"])
@@ -696,6 +721,9 @@ def tool_page(tool_name: str) -> FileResponse:
         return FileResponse(index_file)
     return FileResponse(frontend_dir / "tool.html")
 
+
+if fonts_dir.exists():
+    app.mount("/fonts", StaticFiles(directory=fonts_dir), name="fonts")
 
 if static_dir.exists():
     app.mount("/", StaticFiles(directory=static_dir, html=True), name="frontend")

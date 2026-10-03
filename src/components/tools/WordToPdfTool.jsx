@@ -8,6 +8,14 @@ export default function WordToPdfTool() {
   const [resultUrl, setResultUrl] = useState('');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
+  const [weasyprint, setWeasyprint] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/dependencies/weasyprint')
+      .then((response) => response.ok ? response.json() : null)
+      .then(setWeasyprint)
+      .catch(() => setWeasyprint({ installed: false }));
+  }, []);
 
   useEffect(() => () => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -62,11 +70,18 @@ export default function WordToPdfTool() {
   return (
     <div className="panel">
       <form onSubmit={convert} className="tool-controls">
+        {weasyprint && !weasyprint.installed && (
+          <div className="message" role="alert">
+            <strong>WeasyPrint ยังไม่พร้อมใช้งาน</strong>
+            <span>ต้องติดตั้ง Python package และ library ระบบ Pango/Cairo ก่อนใช้ Word to PDF</span>
+            <a className="button secondary" href="https://doc.courtbouillon.org/weasyprint/stable/first_steps.html" target="_blank" rel="noreferrer">เปิดคู่มือติดตั้ง</a>
+          </div>
+        )}
         <label className="drop" htmlFor="word-file">
           <UploadCloud size={34} className="drop-icon-upload" strokeWidth={1.5} />
           <span>เลือกหรือลากไฟล์ Word</span>
           <em>{file ? file.name : 'รองรับ .doc และ .docx'}</em>
-          <input id="word-file" type="file" accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={choose} />
+          <input id="word-file" type="file" disabled={weasyprint && !weasyprint.installed} accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={choose} />
         </label>
         {previewUrl && (
           <section className="preview" aria-label="ตัวอย่างเอกสาร Word">

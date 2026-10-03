@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import DropZone from '../common/DropZone';
 import PdfPreview from '../common/PdfPreview';
 import DownloadScreen from '../common/DownloadScreen';
@@ -14,6 +14,20 @@ export default function CompressTool() {
   const [message, setMessage] = useState('');
   const [resultUrl, setResultUrl] = useState('');
   const [sourcePreviewUrl, setSourcePreviewUrl] = useState('');
+  const [ghostscript, setGhostscript] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/dependencies/ghostscript')
+      .then((res) => res.ok ? res.json() : null)
+      .then(setGhostscript)
+      .catch(() => setGhostscript({ installed: false, platform: 'unknown' }));
+  }, []);
+
+  const installUrl = ghostscript?.platform === 'windows'
+    ? 'https://ghostscript.com/releases/gsdnld.html'
+    : ghostscript?.platform === 'darwin'
+    ? 'https://formulae.brew.sh/formula/ghostscript'
+    : 'https://ghostscript.com/releases/gsdnld.html';
 
   const handleFile = (files) => {
     if (files.length > 0) {
@@ -140,6 +154,15 @@ export default function CompressTool() {
                 <option value="high">{t('compressTool.qualityHigh')}</option>
               </select>
             </label>
+
+            {ghostscript && !ghostscript.installed && (
+              <div className="message" role="status">
+                {lang === 'ja' ? 'Ghostscript は未インストールです。高度な画像圧縮を使うにはインストールしてください。' : lang === 'en' ? 'Ghostscript is not installed. Install it to enable image-aware compression.' : 'ยังไม่ได้ติดตั้ง Ghostscript หากต้องการบีบอัดภาพสแกนให้มีประสิทธิภาพ ให้ติดตั้งก่อน'}
+                <a className="button secondary" href={installUrl} target="_blank" rel="noreferrer">
+                  {lang === 'ja' ? 'ダウンロードしてインストール' : lang === 'en' ? 'Download Ghostscript' : 'ดาวน์โหลด Ghostscript'}
+                </a>
+              </div>
+            )}
 
             <button
               type="submit"

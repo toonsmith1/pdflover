@@ -20,6 +20,7 @@ import {
   Check,
   Plus,
   Palette,
+  Type,
 } from 'lucide-react';
 import DropZone from '../common/DropZone';
 import DownloadScreen from '../common/DownloadScreen';
@@ -91,12 +92,14 @@ export default function NoteTool() {
   const [loadingPage, setLoadingPage] = useState(false);
 
   // Active Tool & Settings
-  const [activeTool, setActiveTool] = useState('highlighter'); // 'highlighter' | 'pen' | 'rect' | 'note' | 'eraser'
+  const [activeTool, setActiveTool] = useState('highlighter'); // 'highlighter' | 'pen' | 'rect' | 'note' | 'text' | 'eraser'
   const [penColor, setPenColor] = useState('#79352f');
   const [penWidth, setPenWidth] = useState(4);
   const [highlighterColor, setHighlighterColor] = useState('#ffeb3b');
   const [highlighterWidth, setHighlighterWidth] = useState(24);
   const [noteBg, setNoteBg] = useState(NOTE_COLORS[0]);
+  const [textSize, setTextSize] = useState(18);
+  const [textColor, setTextColor] = useState('#222222');
 
   // Per-page annotations: { [pageNum]: { strokes: [], notes: [] } }
   const [pageAnnotations, setPageAnnotations] = useState({});
@@ -302,16 +305,18 @@ export default function NoteTool() {
   const handleMouseDown = (e) => {
     const coords = getCanvasCoords(e);
 
-    if (activeTool === 'note') {
+    if (activeTool === 'note' || activeTool === 'text') {
       saveSnapshot();
       const newNote = {
         id: `note_${Date.now()}`,
         x: coords.x,
         y: coords.y,
-        text: 'ข้อความบันทึก…',
-        bg: noteBg.bg,
-        border: noteBg.border,
-        color: noteBg.text,
+        text: activeTool === 'text' ? 'พิมพ์ข้อความ…' : 'ข้อความบันทึก…',
+        kind: activeTool,
+        size: activeTool === 'text' ? textSize : 14,
+        bg: activeTool === 'text' ? 'transparent' : noteBg.bg,
+        border: activeTool === 'text' ? 'transparent' : noteBg.border,
+        color: activeTool === 'text' ? textColor : noteBg.text,
       };
       setPageAnnotations((prev) => {
         const pageData = prev[currentPage] || { strokes: [], notes: [] };
@@ -596,8 +601,8 @@ export default function NoteTool() {
         // 2. Draw Sticky Notes
         data.notes.forEach((note) => {
           ctx.save();
-          const w = 180;
-          const h = 100;
+          const w = note.kind === 'text' ? 420 : 180;
+          const h = note.kind === 'text' ? 70 : 100;
           // Card Box
           ctx.fillStyle = note.bg;
           ctx.strokeStyle = note.border;
@@ -610,7 +615,8 @@ export default function NoteTool() {
           ctx.font = '14px sans-serif';
           const lines = note.text.split('\n');
           lines.slice(0, 4).forEach((line, lineIdx) => {
-            ctx.fillText(line, note.x + 10, note.y + 24 + lineIdx * 18);
+          ctx.font = `${note.size || 14}px sans-serif`;
+          ctx.fillText(line, note.x + (note.kind === 'text' ? 0 : 10), note.y + (note.kind === 'text' ? note.size || 18 : 24) + lineIdx * ((note.size || 14) + 4));
           });
           ctx.restore();
         });
@@ -765,6 +771,16 @@ export default function NoteTool() {
               >
                 <StickyNote size={16} />
                 <span>จดโน้ต</span>
+              </button>
+
+              <button
+                type="button"
+                className={`note-tool-btn ${activeTool === 'text' ? 'active' : ''}`}
+                onClick={() => setActiveTool('text')}
+                title="เพิ่มข้อความบนหน้าเอกสาร"
+              >
+                <Type size={16} />
+                <span>ข้อความ</span>
               </button>
 
               {/* 4. Rectangle Outline */}
@@ -940,6 +956,20 @@ export default function NoteTool() {
               </div>
             )}
 
+            {activeTool === 'text' && (
+              <div className="sub-strip-options">
+                <span className="strip-label">ขนาด:</span>
+                {[14, 18, 24, 32].map((size) => (
+                  <button key={size} type="button" className={`size-btn ${textSize === size ? 'active' : ''}`} onClick={() => setTextSize(size)}>{size}</button>
+                ))}
+                <span className="strip-label">สี:</span>
+                {PEN_COLORS.map((c) => (
+                  <button key={c.value} type="button" className={`color-dot ${textColor === c.value ? 'active' : ''}`} style={{ backgroundColor: c.value }} onClick={() => setTextColor(c.value)} title={c.label} />
+                ))}
+                <span className="strip-hint">คลิกบนหน้าเอกสารเพื่อเพิ่มข้อความ แล้วแก้ไขในกล่องข้อความ</span>
+              </div>
+            )}
+
             {activeTool === 'rect' && (
               <div className="sub-strip-options">
                 <span className="strip-label">สีกรอบ:</span>
@@ -1013,7 +1043,7 @@ export default function NoteTool() {
               {(currentData.notes || []).map((note) => (
                 <div
                   key={note.id}
-                  className="interactive-sticky-note"
+                  className={`interactive-sticky-note ${note.kind === 'text' ? 'interactive-text-note' : ''}`}
                   style={{
                     left: `${(note.x / 1200) * 100}%`,
                     top: `${(note.y / 1700) * 100}%`,
@@ -1022,7 +1052,7 @@ export default function NoteTool() {
                     color: note.color,
                   }}
                 >
-                  <div className="sticky-note-header">
+                  {note.kind !== 'text' && <div className="sticky-note-header">
                     <span className="sticky-pin">📌 โน้ต</span>
                     <button
                       type="button"
@@ -1032,7 +1062,7 @@ export default function NoteTool() {
                     >
                       ×
                     </button>
-                  </div>
+                  </div>}
                   <textarea
                     value={note.text}
                     onChange={(e) => handleUpdateNote(note.id, e.target.value)}

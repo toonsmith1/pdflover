@@ -21,8 +21,10 @@ The repository contains a React 19 + Vite frontend (built to `dist/`, served by 
 
 ### Typography & Multi-language Fonts
 
-- **Thai (ภาษาไทย)**: Built-in national standard font `TH Sarabun New` with PyThaiNLP vowel and tone mark shaping.
-- **Japanese (日本語)**: ISO 32000-1 Adobe standard CID fonts (`HeiseiKakuGo-W5` Gothic & `HeiseiMin-W3` Mincho) supported natively by all PDF readers worldwide with zero repo binary bloat and 100% open distribution compliance.
+- **Thai (ภาษาไทย)**: Bundled `TH Sarabun New` and Google Fonts `Sarabun` choices with PyThaiNLP vowel and tone mark shaping. Their license notices are included under [fonts/](fonts/).
+- **Japanese (日本語)**: Bundled `Noto Sans JP` is used for consistent Japanese PDF output. It is distributed under SIL OFL 1.1; see [fonts/README.md](fonts/README.md).
+- **Third-party licenses**: Redistribution notices for bundled fonts and ReportLab are kept in [fonts/](fonts/) and [licenses/](licenses/).
+- **Tool UX guidance**: The staged full-workspace interaction model is documented for future contributors and coding agents in [docs/AI_TOOL_UX_GUIDE.md](docs/AI_TOOL_UX_GUIDE.md).
 - **English & Western**: Universal standard PDF fonts (`Helvetica`, `Times-Roman`, `Courier`).
 
 ### Word to PDF status

@@ -1,5 +1,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600&family=Noto+Sans+Thai:wght@300;400;450;500;550;600&display=swap');
 
+@font-face {
+  font-family: 'PDFLover Sarabun';
+  src: url('/fonts/Sarabun-Regular.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PDFLover Noto Sans JP';
+  src: url('/fonts/NotoSansJP[wght].ttf') format('truetype');
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+
 :root {
   --background: #faf8f5;
   --foreground: #302e2a;
@@ -85,6 +101,50 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .wrap {
   width: min(1180px, calc(100% - 72px));
   margin-inline: auto;
+}
+
+/* Document editors get the same spacious stage as the Add Text studio. */
+.tool-page--workspace {
+  width: min(1480px, calc(100% - 40px));
+}
+
+.tool-page--workspace > .panel {
+  min-height: 68vh;
+}
+
+.tool-page--workspace > .panel > .tool-layout,
+.tool-page--workspace > .panel > .tool-controls {
+  min-height: 58vh;
+}
+
+.tool-page--workspace > .panel > .tool-layout > .tool-controls {
+  align-content: start;
+}
+
+.interactive-text-note {
+  background: transparent !important;
+  border-style: dashed !important;
+  border-color: transparent !important;
+  box-shadow: none;
+}
+
+.interactive-text-note .sticky-note-header {
+  color: var(--muted-foreground);
+}
+
+.interactive-text-note textarea {
+  min-width: 320px;
+  min-height: 42px;
+  padding: 2px 4px;
+  background: transparent;
+  border: 1px dashed rgba(120, 110, 98, .45);
+  font-size: inherit;
+}
+
+@media (max-width: 600px) {
+  .tool-page--workspace {
+    width: calc(100% - 24px);
+  }
 }
 
 main {
@@ -469,6 +529,28 @@ h1 {
 }
 
 /* Tool Page Layout */
+.tool-heading-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  min-height: 42px;
+  margin-bottom: 10px;
+}
+
+.tool-heading-row .back {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.tool-heading-row h1 {
+  margin: 0;
+}
+
+.tool-heading-separator {
+  color: var(--border);
+  font-size: 22px;
+}
+
 .tool-page .back {
   display: inline-flex;
   align-items: center;
@@ -497,14 +579,54 @@ h1 {
   letter-spacing: 1.5px;
   color: var(--muted-foreground);
   text-transform: uppercase;
-  margin-bottom: 4px;
+  margin: 0;
 }
 
 .tool-page p#description {
   color: #756e66;
   font-size: 15px;
-  margin-top: 4px;
+  margin: 0;
   font-weight: 350;
+}
+
+.tool-subheading {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-height: 20px;
+  margin-bottom: 8px;
+}
+
+.tool-subheading-separator {
+  color: var(--border);
+}
+
+@media (max-width: 600px) {
+  .tool-subheading {
+    gap: 6px;
+    font-size: 12px;
+  }
+
+  .tool-page small#category,
+  .tool-page p#description {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  .tool-heading-row {
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+  }
+
+  .tool-heading-row h1 {
+    font-size: 26px;
+  }
+
+  .tool-heading-separator {
+    font-size: 18px;
+  }
 }
 
 /* Panels */
