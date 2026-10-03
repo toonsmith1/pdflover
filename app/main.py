@@ -52,6 +52,29 @@ settings = get_settings()
 app = FastAPI(title="PDF Lover API", version="0.1.0")
 
 ALLOWED_HOSTS = {"127.0.0.1", "localhost", "::1", "testserver"}
+ALLOWED_ORIGINS = {
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+    "http://127.0.0.1:5173",
+    "http://localhost:5173",
+    "http://testserver",
+}
+
+
+def _is_allowed_local_url(value: str, *, origin_only: bool = False) -> bool:
+    """Accept only explicitly allowed local origins, including their expected ports."""
+    try:
+        parsed = urlparse(value)
+        if parsed.scheme not in {"http", "https"} or not parsed.hostname:
+            return False
+        normalized = f"{parsed.scheme}://{parsed.netloc}".lower().rstrip("/")
+        if origin_only and (parsed.path or parsed.params or parsed.query or parsed.fragment):
+            return False
+        if not origin_only and (parsed.username or parsed.password):
+            return False
+        return normalized in ALLOWED_ORIGINS
+    except (ValueError, TypeError):
+        return False
 
 @app.middleware("http")
 async def verify_csrf_origin(request: Request, call_next):
@@ -63,20 +86,20 @@ async def verify_csrf_origin(request: Request, call_next):
         origin = request.headers.get("origin")
         referer = request.headers.get("referer")
 
-        if origin:
-            try:
-                hostname = urlparse(origin).hostname or ""
-                if hostname not in ALLOWED_HOSTS:
-                    return JSONResponse({"detail": "Forbidden: Cross-site request rejected"}, status_code=403)
-            except (ValueError, TypeError):
-                return JSONResponse({"detail": "Forbidden: Invalid origin header"}, status_code=403)
+        if origin and referer:
+            if not _is_allowed_local_url(origin, origin_only=True) or not _is_allowed_local_url(referer):
+                return JSONResponse({"detail": "Forbidden: Cross-site request rejected"}, status_code=403)
+        elif origin:
+            if not _is_allowed_local_url(origin, origin_only=True):
+                return JSONResponse({"detail": "Forbidden: Cross-site request rejected"}, status_code=403)
         elif referer:
-            try:
-                hostname = urlparse(referer).hostname or ""
-                if hostname not in ALLOWED_HOSTS:
-                    return JSONResponse({"detail": "Forbidden: Cross-site request rejected"}, status_code=403)
-            except (ValueError, TypeError):
-                return JSONResponse({"detail": "Forbidden: Invalid referer header"}, status_code=403)
+            if not _is_allowed_local_url(referer):
+                return JSONResponse({"detail": "Forbidden: Cross-site request rejected"}, status_code=403)
+        else:
+            # Starlette's in-process TestClient uses this synthetic host and
+            # omits browser origin headers. Never allow it over a real socket.
+            if request.url.hostname != "testserver":
+                return JSONResponse({"detail": "Forbidden: Missing Origin or Referer header"}, status_code=403)
 
     return await call_next(request)
 
