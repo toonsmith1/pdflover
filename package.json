@@ -1,6 +1,6 @@
 {
   "name": "pdflover",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "PDF Lover is a local-first PDF toolbox with a small Python service and a browser UI. Common PDF operations run on the user's machine; OCR is provided through a remote Typhoon OCR API so the app does not need to download a large model or require a GPU.",
   "main": "index.js",
   "scripts": {

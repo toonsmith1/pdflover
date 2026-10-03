@@ -81,7 +81,24 @@ PDF Loverは**ローカルファースト（完全ローカル動作）**とし�
 
 > [docs/AI_INSTALL_GUIDE.md](docs/AI_INSTALL_GUIDE.md) に従って PDF Lover をインストールしてください。既存の変更を保持し、このマシンに必要なものだけをインストールし、`127.0.0.1:8000` で起動して `/api/health` を確認し、利用できないオプション依存関係を報告してください。
 
+初回インストールは Linux/macOS では `./install.sh`、Windows では `install.bat` を実行し、その後 `./run.sh` または `run.bat` で起動します。
+
 ### Windows環境の場合
+
+#### 初回インストールと起動
+
+ソースを clone した場合は、先に Python 3.11 以降をインストールしてから実行します。
+
+```powershell
+.\install.bat
+.\run.bat
+```
+
+#### 更新
+
+ヘッダーに新しいバージョンの表示が出たらクリックして GitHub Release のダウンロードページを開きます。source clone では `./update.sh`（Windows は `update.bat`）を実行してください。最新コードを取得して `dist/` を再構築し、`.env` と仮想環境を保持します。Release パッケージの場合は新しいパッケージで既存フォルダーを置き換え、`.env` と個人データを保持してから再起動します。
+
+`install.bat` は `.venv` の作成、Python パッケージのインストール、`.env` の作成、`dist/` がない場合の React ビルドを行います。`dist/` 付きの Release 版では Node.js/npm は不要です。
 
 1. リポジトリをクローン:
    ```bash
@@ -102,6 +119,18 @@ PDF Loverは**ローカルファースト（完全ローカル動作）**とし�
 ---
 
 ### Linux / macOS環境の場合
+
+#### 初回インストールと起動
+
+ソースを clone した場合は、先に Python 3.11 以降をインストールしてから実行します。
+
+```bash
+chmod +x install.sh run.sh
+./install.sh
+./run.sh
+```
+
+`install.sh` は `.venv` の作成、Python パッケージのインストール、`.env` の作成、`dist/` がない場合の React ビルドを行います。`dist/` 付きの Release 版では Node.js/npm は不要です。
 
 1. 初回セットアップ:
    ```bash

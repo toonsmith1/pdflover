@@ -77,7 +77,25 @@ PDF Lover ยึดหลักการออกแบบแบบ **Local-firs
 
 > ติดตั้ง PDF Lover ตาม [docs/AI_INSTALL_GUIDE.md](docs/AI_INSTALL_GUIDE.md) ตรวจและเก็บการเปลี่ยนแปลงเดิมไว้ ติดตั้งเฉพาะสิ่งที่เครื่องนี้ต้องใช้ เปิดเซิร์ฟเวอร์ที่ `127.0.0.1:8000` ตรวจ `/api/health` และรายงาน dependency เสริมที่ยังไม่พร้อม
 
+การติดตั้งครั้งแรกใช้ `./install.sh` บน Linux/macOS หรือ `install.bat` บน Windows แล้วจึงเปิดแอปด้วย `./run.sh` หรือ `run.bat`
+
 ### สำหรับ Windows
+
+#### ติดตั้งครั้งแรกและเปิดใช้งาน
+
+สำหรับ source clone ให้ติดตั้ง Python 3.11+ ก่อน แล้วรัน:
+
+```powershell
+.\install.bat
+.\run.bat
+```
+
+#### การอัปเดต
+
+เมื่อส่วนหัวแสดงป้ายเวอร์ชันใหม่ ให้กดป้ายเพื่อเปิดหน้า GitHub Release หากใช้ source clone ให้รัน `./update.sh` (Windows ใช้ `update.bat`) สคริปต์จะดึงโค้ดล่าสุด ล้างและสร้าง `dist/` ใหม่ โดยเก็บ `.env` และ virtual environment ไว้ หากใช้ชุด Release ให้ดาวน์โหลดแพ็กเกจใหม่แทนที่โฟลเดอร์เดิม โดยเก็บ `.env` และข้อมูลส่วนตัวไว้ แล้วเปิดแอปอีกครั้ง
+
+`install.bat` จะสร้าง `.venv`, ติดตั้งแพ็กเกจ Python, สร้าง `.env` และ build
+frontend เมื่อยังไม่มี `dist/` หากเป็นชุด Release ที่มี `dist/` แล้ว จะไม่ต้องใช้ Node.js/npm
 
 1. โคลนคลังโค้ด:
    ```bash
@@ -99,6 +117,19 @@ PDF Lover ยึดหลักการออกแบบแบบ **Local-firs
 ---
 
 ### สำหรับ Linux / macOS
+
+#### ติดตั้งครั้งแรกและเปิดใช้งาน
+
+สำหรับ source clone ให้ติดตั้ง Python 3.11+ ก่อน แล้วรัน:
+
+```bash
+chmod +x install.sh run.sh
+./install.sh
+./run.sh
+```
+
+`install.sh` จะสร้าง `.venv`, ติดตั้งแพ็กเกจ Python, สร้าง `.env` และ build
+frontend เมื่อยังไม่มี `dist/` หากเป็นชุด Release ที่มี `dist/` แล้ว จะไม่ต้องใช้ Node.js/npm
 
 1. ติดตั้งสภาพแวดล้อม (ทำครั้งแรกครั้งเดียว):
    ```bash

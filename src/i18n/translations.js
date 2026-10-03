@@ -55,7 +55,7 @@ export const TRANSLATIONS = {
       offline: 'Offline',
       toolsNav: 'เครื่องมือ',
       updateBadge: 'มีเวอร์ชันใหม่',
-      updateTo: 'อัปเดต',
+      updateTo: 'ดาวน์โหลดอัปเดต',
     },
     hero: {
       eyebrow: 'LOCAL-FIRST WORKSPACE • ปลอดภัย 100%',
@@ -218,7 +218,7 @@ export const TRANSLATIONS = {
       offline: 'Offline',
       toolsNav: 'Tools',
       updateBadge: 'New release available',
-      updateTo: 'Update',
+      updateTo: 'Download update',
     },
     hero: {
       eyebrow: 'LOCAL-FIRST WORKSPACE • 100% PRIVATE',
@@ -381,7 +381,7 @@ export const TRANSLATIONS = {
       offline: 'オフライン',
       toolsNav: 'ツール一覧',
       updateBadge: '新しいバージョンがあります',
-      updateTo: '更新',
+      updateTo: '更新をダウンロード',
     },
     hero: {
       eyebrow: 'LOCAL-FIRST WORKSPACE • 100% 安全・安心',

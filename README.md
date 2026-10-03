@@ -60,7 +60,27 @@ Give Claude, Gemini, ChatGPT, or Codex this prompt from the repository root:
 
 > Install PDF Lover using [docs/AI_INSTALL_GUIDE.md](docs/AI_INSTALL_GUIDE.md). Preserve existing changes, install only what this machine needs, start the server on `127.0.0.1:8000`, verify `/api/health`, and report optional dependencies that remain unavailable.
 
+For a first-time source checkout, run `./install.sh` on Linux/macOS or
+`install.bat` on Windows. Then start the app with `./run.sh` or `run.bat`.
+
 ### Windows
+
+#### First-time installation and launch
+
+From a source clone, install Python 3.11+ first, then run:
+
+```powershell
+.\install.bat
+.\run.bat
+```
+
+#### Updating
+
+When the header shows a new-version badge, click it to open the GitHub Release download page. For a source checkout, run `./update.sh` (Windows: `update.bat`). It pulls the latest code, rebuilds `dist/`, and keeps the local `.env` and virtual environment. For a packaged Release, download the new package and replace the old folder while keeping `.env` and personal data, then launch again.
+
+`install.bat` creates `.venv`, installs Python packages, creates `.env`, and
+builds the React frontend when `dist/` is missing. A Release package that
+already contains `dist/` does not require Node.js/npm.
 
 1. Clone the repository:
    ```bash
@@ -82,6 +102,20 @@ Give Claude, Gemini, ChatGPT, or Codex this prompt from the repository root:
 ---
 
 ### Linux / macOS
+
+#### First-time installation and launch
+
+From a source clone, install Python 3.11+ first, then run:
+
+```bash
+chmod +x install.sh run.sh
+./install.sh
+./run.sh
+```
+
+`install.sh` creates `.venv`, installs Python packages, creates `.env`, and
+builds the React frontend when `dist/` is missing. A Release package that
+already contains `dist/` does not require Node.js/npm.
 
 1. Setup environment (one-time):
    ```bash

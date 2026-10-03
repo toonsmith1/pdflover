@@ -51,7 +51,7 @@ from .pdf_service import (
 )
 
 settings = get_settings()
-app = FastAPI(title="PDF Lover API", version="0.1.0")
+app = FastAPI(title="PDF Lover API", version="1.0.1")
 
 ALLOWED_HOSTS = {"127.0.0.1", "localhost", "::1", "testserver"}
 ALLOWED_ORIGINS = {

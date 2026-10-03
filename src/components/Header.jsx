@@ -4,7 +4,7 @@ import { ArrowLeft, HardDrive } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageContext';
 import logoImage from '../assets/pdflover-logo.png';
 
-const CURRENT_VERSION = '1.0.0';
+const CURRENT_VERSION = '1.0.1';
 const GITHUB_REPO = 'toonsmith1/pdflover';
 
 // Semver compare helper: returns 1 if v2 > v1
